@@ -1301,19 +1301,48 @@
       const apiKey = localStorage.getItem('gemini_api_key');
 
       try {
-        // Fetch via CORS Proxy (allorigins)
-        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout
-        
-        const response = await fetch(proxyUrl, { signal: controller.signal });
-        clearTimeout(timeoutId);
+        // List of CORS proxies to try sequentially
+        const proxies = [
+          url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+          url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+          url => `https://codetabs.com/cors-proxy/cors.html?val=${encodeURIComponent(url)}`
+        ];
 
-        if (!response.ok) {
-          throw new Error('Proxy responded with error');
+        let htmlText = '';
+        let fetchSuccess = false;
+        let lastFetchError = null;
+
+        for (let i = 0; i < proxies.length; i++) {
+          const proxyUrl = proxies[i](url);
+          try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 seconds timeout per proxy
+            
+            const response = await fetch(proxyUrl, { signal: controller.signal });
+            clearTimeout(timeoutId);
+
+            if (response.ok) {
+              const text = await response.text();
+              // Verify if response contains valid recipe html/json data
+              if (text && (text.includes('<html') || text.includes('<body') || text.includes('<!DOCTYPE') || text.includes('recipe') || text.includes('{'))) {
+                htmlText = text;
+                fetchSuccess = true;
+                break;
+              } else {
+                throw new Error('Response did not contain valid HTML/JSON content');
+              }
+            } else {
+              throw new Error(`Status ${response.status}`);
+            }
+          } catch (err) {
+            console.warn(`CORS Proxy ${i + 1} failed: ${proxyUrl}`, err);
+            lastFetchError = err;
+          }
         }
 
-        const htmlText = await response.text();
+        if (!fetchSuccess) {
+          throw new Error(`全てのCORSプロキシ経由でのレシピ取得に失敗しました。詳細: ${lastFetchError?.message || 'タイムアウト'}`);
+        }
         
         let title = '';
         let tags = [];
@@ -1351,7 +1380,12 @@
 
       } catch (err) {
         console.error("Url parsing error", err);
-        showToast('自動解析に失敗しました。手動で入力してください。', 'fa-circle-exclamation');
+        const errMsg = err.message || '';
+        if (errMsg.includes('API key') || errMsg.includes('API_KEY_INVALID') || errMsg.includes('400') || errMsg.includes('403')) {
+          showToast('Gemini APIキーが無効か、エラーが発生しました。キーを確認してください。', 'fa-circle-exclamation');
+        } else {
+          showToast(`解析に失敗しました。手動で入力してください。(${errMsg.slice(0, 50)})`, 'fa-circle-exclamation');
+        }
         
         // Pre-fill manual modal fields and open it
         openManualModal(url);
