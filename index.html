@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ぽちっと冷蔵庫レシピver1.1 | レシピ検索ツール</title>
+  <title>ぽちっと冷蔵庫レシピver1.1.1 | レシピ検索ツール</title>
   <meta name="description" content="冷蔵庫の余り物食材をぽちぽち選ぶだけで、ワンクリックでクラシルの美味しいレシピを検索できる超軽量・爆速Webツール。">
   
   <!-- Google Fonts & Font Awesome Icons -->
@@ -1357,7 +1357,7 @@
           <i class="fa-solid fa-utensils"></i>
         </div>
         <div>
-          <h1 class="app-title">ぽちっと冷蔵庫レシピver1.1</h1>
+          <h1 class="app-title">ぽちっと冷蔵庫レシピver1.1.1</h1>
           <div class="app-subtitle">クラシル・デリッシュキッチン簡単連携レシピファインダー</div>
         </div>
       </div>
@@ -2183,48 +2183,7 @@
             role: "user",
             parts: [{ text: systemPrompt }]
           }
-        ],
-        generationConfig: {
-          responseMimeType: "application/json",
-          responseSchema: {
-            type: "object",
-            properties: {
-              kurashiru: {
-                type: "object",
-                properties: {
-                  title: { type: "string" },
-                  description: { type: "string" },
-                  ingredients: {
-                    type: "array",
-                    items: { type: "string" }
-                  },
-                  steps: {
-                    type: "array",
-                    items: { type: "string" }
-                  }
-                },
-                required: ["title", "description", "ingredients", "steps"]
-              },
-              delish: {
-                type: "object",
-                properties: {
-                  title: { type: "string" },
-                  description: { type: "string" },
-                  ingredients: {
-                    type: "array",
-                    items: { type: "string" }
-                  },
-                  steps: {
-                    type: "array",
-                    items: { type: "string" }
-                  }
-                },
-                required: ["title", "description", "ingredients", "steps"]
-              }
-            },
-            required: ["kurashiru", "delish"]
-          }
-        }
+        ]
       };
 
       const response = await fetch(requestUrl, {

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>保存したレシピ | ぽちっと冷蔵庫レシピver1.1</title>
+  <title>保存したレシピ | ぽちっと冷蔵庫レシピver1.1.1</title>
   <meta name="description" content="保存したお気に入りレシピの管理と、URLから使用食材の自動タグ付け・抽出を行うツール。">
   
   <!-- Google Fonts & Font Awesome Icons -->
@@ -799,7 +799,7 @@
           <i class="fa-solid fa-utensils"></i>
         </div>
         <div>
-          <h1 class="app-title">ぽちっと冷蔵庫レシピver1.1</h1>
+          <h1 class="app-title">ぽちっと冷蔵庫レシピver1.1.1</h1>
           <div class="app-subtitle">保存レシピ管理</div>
         </div>
       </a>
@@ -1552,21 +1552,7 @@ ${allPresetNames.join(', ')}
               { text: `解析対象レシピデータ:\n${contentBlob}` }
             ]
           }
-        ],
-        generationConfig: {
-          responseMimeType: "application/json",
-          responseSchema: {
-            type: "object",
-            properties: {
-              title: { type: "string" },
-              ingredients: {
-                type: "array",
-                items: { type: "string" }
-              }
-            },
-            required: ["title", "ingredients"]
-          }
-        }
+        ]
       };
 
       const response = await fetch(requestUrl, {
