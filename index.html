@@ -2189,36 +2189,36 @@
         generationConfig: {
           responseMimeType: "application/json",
           responseSchema: {
-            type: "object",
+            type: "OBJECT",
             properties: {
               kurashiru: {
-                type: "object",
+                type: "OBJECT",
                 properties: {
-                  title: { type: "string" },
-                  description: { type: "string" },
+                  title: { type: "STRING" },
+                  description: { type: "STRING" },
                   ingredients: {
-                    type: "array",
-                    items: { type: "string" }
+                    type: "ARRAY",
+                    items: { type: "STRING" }
                   },
                   steps: {
-                    type: "array",
-                    items: { type: "string" }
+                    type: "ARRAY",
+                    items: { type: "STRING" }
                   }
                 },
                 required: ["title", "description", "ingredients", "steps"]
               },
               delish: {
-                type: "object",
+                type: "OBJECT",
                 properties: {
-                  title: { type: "string" },
-                  description: { type: "string" },
+                  title: { type: "STRING" },
+                  description: { type: "STRING" },
                   ingredients: {
-                    type: "array",
-                    items: { type: "string" }
+                    type: "ARRAY",
+                    items: { type: "STRING" }
                   },
                   steps: {
-                    type: "array",
-                    items: { type: "string" }
+                    type: "ARRAY",
+                    items: { type: "STRING" }
                   }
                 },
                 required: ["title", "description", "ingredients", "steps"]
@@ -2448,14 +2448,17 @@
 
       if (activeEngine === 'kurashiru') {
         showToast('クラシルに接続します...', 'fa-arrow-up-right-from-square');
-        window.open(kurashiruUrl, '_blank', 'noopener,noreferrer');
+        window.open(kurashiruUrl, '_blank');
       } else if (activeEngine === 'delish') {
         showToast('デリッシュキッチンに接続します...', 'fa-arrow-up-right-from-square');
-        window.open(delishUrl, '_blank', 'noopener,noreferrer');
+        window.open(delishUrl, '_blank');
       } else if (activeEngine === 'both') {
         showToast('両方のサイトで検索します...', 'fa-arrow-up-right-from-square');
-        window.open(kurashiruUrl, '_blank', 'noopener,noreferrer');
-        window.open(delishUrl, '_blank', 'noopener,noreferrer');
+        const tab1 = window.open(kurashiruUrl, '_blank');
+        const tab2 = window.open(delishUrl, '_blank');
+        if (!tab1 || !tab2 || tab1.closed || tab2.closed || typeof tab1.closed === 'undefined' || typeof tab2.closed === 'undefined') {
+          showToast('ポップアップがブロックされました。ブラウザのアドレスバーのアイコンから「常に許可」を設定してください。', 'fa-circle-exclamation');
+        }
       }
     }
 
