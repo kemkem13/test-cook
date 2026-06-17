@@ -794,7 +794,7 @@
     <div class="container">
     <!-- Header -->
     <header>
-      <a href="index_v2.html" class="logo-container" aria-label="メイン画面に戻る">
+      <a href="index.html" class="logo-container" aria-label="メイン画面に戻る">
         <div class="logo-icon" aria-hidden="true">
           <i class="fa-solid fa-utensils"></i>
         </div>
@@ -804,7 +804,7 @@
         </div>
       </a>
       <div class="header-actions">
-        <a href="index_v2.html" class="theme-toggle-btn btn-text" aria-label="メイン画面に戻る">
+        <a href="index.html" class="theme-toggle-btn btn-text" aria-label="メイン画面に戻る">
           <i class="fa-solid fa-arrow-left"></i>
           <span>食材をえらぶ</span>
         </a>
@@ -828,13 +828,40 @@
 
       <!-- API Key Setting Panel (Toggle display) -->
       <div id="apiKeyPanel" style="display: none; flex-direction: column; gap: 8px; margin-bottom: 16px; padding: 14px; background: var(--btn-inactive-bg); border: 1px solid var(--btn-inactive-border); border-radius: 12px; animation: fadeIn 0.3s ease;">
-        <label for="geminiApiKey" style="font-size: 0.8rem; font-weight: 700; color: var(--text-secondary);">Google Gemini API キー</label>
+        <label for="geminiApiKey" style="font-size: 0.8rem; font-weight: 700; color: var(--text-secondary);"><i class="fa-solid fa-key"></i> Google Gemini API キー</label>
         <p style="font-size: 0.75rem; color: var(--text-secondary); margin-top: -4px;">
           設定するとAIが高精度に食材タグを自動抽出します。<a href="https://aistudio.google.com/app/apikey" target="_blank" style="color: var(--primary-color); text-decoration: underline;" rel="noopener noreferrer">キーの取得はこちら(無料)</a>
         </p>
-        <div class="input-row" style="margin-top: 4px;">
+        <div class="input-row" style="margin-top: 4px; margin-bottom: 8px;">
           <input type="password" id="geminiApiKey" class="modal-input" placeholder="AIzaSy..." style="flex-grow: 1;">
           <button type="button" id="saveApiKeyBtn" class="modal-btn save" style="padding: 10px 16px;">保存</button>
+        </div>
+
+        <hr style="border: none; border-top: 1px solid var(--btn-inactive-border); margin: 6px 0 10px;">
+
+        <label style="font-size: 0.8rem; font-weight: 700; color: var(--text-secondary);"><i class="fa-solid fa-cloud-arrow-up"></i> データ共有・バックアップ</label>
+        <p style="font-size: 0.75rem; color: var(--text-secondary); margin-top: -4px;">
+          異なる端末間で保存レシピや設定を移行できます。
+        </p>
+        <label class="checkbox-container" style="display: flex; align-items: center; gap: 6px; font-size: 0.75rem; color: var(--text-secondary); cursor: pointer; margin-top: 4px; margin-bottom: 8px;">
+          <input type="checkbox" id="exportIncludeApiKey" checked style="cursor: pointer;">
+          <span>エクスポートデータにGemini APIキーを含める</span>
+        </label>
+        <div style="display: flex; gap: 8px;">
+          <button type="button" id="exportDataBtn" class="modal-btn" style="flex: 1; background: var(--body-bg); border: 1px solid var(--btn-inactive-border); color: var(--btn-inactive-text); font-size: 0.75rem; padding: 8px 12px; display: flex; align-items: center; justify-content: center; gap: 4px;">
+            <i class="fa-solid fa-download"></i> エクスポート
+          </button>
+          <button type="button" id="importTriggerBtn" class="modal-btn" style="flex: 1; background: var(--body-bg); border: 1px solid var(--btn-inactive-border); color: var(--btn-inactive-text); font-size: 0.75rem; padding: 8px 12px; display: flex; align-items: center; justify-content: center; gap: 4px;">
+            <i class="fa-solid fa-upload"></i> インポート
+          </button>
+        </div>
+        <input type="file" id="importFileInput" accept=".json" style="display: none;">
+        <div id="importArea" style="display: none; flex-direction: column; gap: 6px; margin-top: 10px;">
+          <textarea id="importJsonText" class="modal-input modal-textarea" placeholder="ここにエクスポートしたJSONデータを貼り付けるか、ファイルを選択してください..." style="height: 80px; font-family: monospace; font-size: 0.7rem;"></textarea>
+          <div style="display: flex; gap: 6px; justify-content: flex-end;">
+            <button type="button" id="cancelImportBtn" class="modal-btn cancel" style="padding: 4px 8px; font-size: 0.75rem;">キャンセル</button>
+            <button type="button" id="confirmImportBtn" class="modal-btn save" style="padding: 4px 8px; font-size: 0.75rem;">実行</button>
+          </div>
         </div>
       </div>
 
@@ -990,6 +1017,16 @@
     const apiKeyPanel = document.getElementById('apiKeyPanel');
     const geminiApiKeyInput = document.getElementById('geminiApiKey');
     const saveApiKeyBtn = document.getElementById('saveApiKeyBtn');
+
+    // Backup & Sync Elements
+    const exportIncludeApiKey = document.getElementById('exportIncludeApiKey');
+    const exportDataBtn = document.getElementById('exportDataBtn');
+    const importTriggerBtn = document.getElementById('importTriggerBtn');
+    const importFileInput = document.getElementById('importFileInput');
+    const importArea = document.getElementById('importArea');
+    const importJsonText = document.getElementById('importJsonText');
+    const cancelImportBtn = document.getElementById('cancelImportBtn');
+    const confirmImportBtn = document.getElementById('confirmImportBtn');
     
     const manualTrigger = document.getElementById('manualTrigger');
     const manualModal = document.getElementById('manualModal');
@@ -1504,7 +1541,7 @@ JSONフォーマット:
 ${allPresetNames.join(', ')}
 `;
 
-      const requestUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+      const requestUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
       
       const payload = {
         contents: [
@@ -1567,6 +1604,92 @@ ${allPresetNames.join(', ')}
         showToast('レシピを登録しました', 'fa-circle-check');
         closeModal();
       }
+    }
+
+    // --- Export / Import Backup Logic ---
+    function handleExportData() {
+      try {
+        const includeKey = exportIncludeApiKey.checked;
+        const backupObj = {
+          version: "1.0",
+          exportedAt: new Date().toISOString(),
+          theme: localStorage.getItem('theme') || 'light',
+          customIngredients: JSON.parse(localStorage.getItem('customIngredients') || '[]'),
+          savedRecipes: JSON.parse(localStorage.getItem('savedRecipes') || '[]'),
+          app_authenticated: localStorage.getItem('app_authenticated') || 'false'
+        };
+        if (includeKey) {
+          backupObj.gemini_api_key = localStorage.getItem('gemini_api_key') || '';
+        }
+
+        const dataStr = JSON.stringify(backupObj, null, 2);
+        
+        // Copy to clipboard
+        navigator.clipboard.writeText(dataStr).then(() => {
+          showToast('データをクリップボードにコピーしました！', 'fa-circle-check');
+        }).catch(err => {
+          console.warn('Clipboard copy failed', err);
+        });
+
+        // Trigger file download
+        const blob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `pochitto_recipes_backup_${Date.now()}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } catch (err) {
+        console.error('Export failed', err);
+        showToast('エクスポートに失敗しました', 'fa-circle-exclamation');
+      }
+    }
+
+    function handleImportData() {
+      const jsonText = importJsonText.value.trim();
+      if (!jsonText) {
+        showToast('インポートするJSONを入力してください', 'fa-circle-exclamation');
+        return;
+      }
+
+      try {
+        const data = JSON.parse(jsonText);
+        
+        // Basic validation
+        if (!data.savedRecipes && !data.customIngredients) {
+          throw new Error('必要なデータ項目（保存レシピ等）が見つかりません');
+        }
+
+        // Apply settings
+        if (data.theme) localStorage.setItem('theme', data.theme);
+        if (data.customIngredients) localStorage.setItem('customIngredients', JSON.stringify(data.customIngredients));
+        if (data.savedRecipes) localStorage.setItem('savedRecipes', JSON.stringify(data.savedRecipes));
+        if (data.app_authenticated) localStorage.setItem('app_authenticated', data.app_authenticated);
+        if (data.gemini_api_key !== undefined) localStorage.setItem('gemini_api_key', data.gemini_api_key);
+
+        showToast('データを正常にインポートしました！再読み込みします。', 'fa-circle-check');
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);
+
+      } catch (err) {
+        console.error('Import failed', err);
+        showToast(`インポートに失敗しました: ${err.message}`, 'fa-circle-exclamation');
+      }
+    }
+
+    function handleImportFileChange(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        importJsonText.value = event.target.result;
+        importArea.style.display = 'flex';
+      };
+      reader.readAsText(file);
     }
 
     // --- Password Verification Logic ---
@@ -1658,6 +1781,18 @@ ${allPresetNames.join(', ')}
         }
         apiKeyPanel.style.display = 'none';
       });
+
+      // Export/Import buttons
+      exportDataBtn.addEventListener('click', handleExportData);
+      importTriggerBtn.addEventListener('click', () => {
+        importFileInput.click();
+      });
+      importFileInput.addEventListener('change', handleImportFileChange);
+      cancelImportBtn.addEventListener('click', () => {
+        importArea.style.display = 'none';
+        importJsonText.value = '';
+      });
+      confirmImportBtn.addEventListener('click', handleImportData);
 
       // URL Parse submission
       parserForm.addEventListener('submit', (e) => {
