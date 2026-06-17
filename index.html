@@ -2187,7 +2187,45 @@
           }
         ],
         generationConfig: {
-          responseMimeType: "application/json"
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: "object",
+            properties: {
+              kurashiru: {
+                type: "object",
+                properties: {
+                  title: { type: "string" },
+                  description: { type: "string" },
+                  ingredients: {
+                    type: "array",
+                    items: { type: "string" }
+                  },
+                  steps: {
+                    type: "array",
+                    items: { type: "string" }
+                  }
+                },
+                required: ["title", "description", "ingredients", "steps"]
+              },
+              delish: {
+                type: "object",
+                properties: {
+                  title: { type: "string" },
+                  description: { type: "string" },
+                  ingredients: {
+                    type: "array",
+                    items: { type: "string" }
+                  },
+                  steps: {
+                    type: "array",
+                    items: { type: "string" }
+                  }
+                },
+                required: ["title", "description", "ingredients", "steps"]
+              }
+            },
+            required: ["kurashiru", "delish"]
+          }
         }
       };
 
@@ -2203,8 +2241,16 @@
       }
 
       const resData = await response.json();
+      if (!resData.candidates || !resData.candidates[0] || !resData.candidates[0].content || !resData.candidates[0].content.parts || !resData.candidates[0].content.parts[0]) {
+        throw new Error("Gemini API から有効な応答が得られませんでした。");
+      }
+      
       const rawJson = resData.candidates[0].content.parts[0].text;
-      return JSON.parse(rawJson.trim());
+      let cleanedJson = rawJson.trim();
+      if (cleanedJson.startsWith('```')) {
+        cleanedJson = cleanedJson.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
+      }
+      return JSON.parse(cleanedJson.trim());
     }
 
     async function handleAiPropose() {
@@ -2402,20 +2448,14 @@
 
       if (activeEngine === 'kurashiru') {
         showToast('クラシルに接続します...', 'fa-arrow-up-right-from-square');
-        setTimeout(() => {
-          window.open(kurashiruUrl, '_blank', 'noopener,noreferrer');
-        }, 500);
+        window.open(kurashiruUrl, '_blank', 'noopener,noreferrer');
       } else if (activeEngine === 'delish') {
         showToast('デリッシュキッチンに接続します...', 'fa-arrow-up-right-from-square');
-        setTimeout(() => {
-          window.open(delishUrl, '_blank', 'noopener,noreferrer');
-        }, 500);
+        window.open(delishUrl, '_blank', 'noopener,noreferrer');
       } else if (activeEngine === 'both') {
         showToast('両方のサイトで検索します...', 'fa-arrow-up-right-from-square');
-        setTimeout(() => {
-          window.open(kurashiruUrl, '_blank', 'noopener,noreferrer');
-          window.open(delishUrl, '_blank', 'noopener,noreferrer');
-        }, 500);
+        window.open(kurashiruUrl, '_blank', 'noopener,noreferrer');
+        window.open(delishUrl, '_blank', 'noopener,noreferrer');
       }
     }
 

@@ -1554,7 +1554,18 @@ ${allPresetNames.join(', ')}
           }
         ],
         generationConfig: {
-          responseMimeType: "application/json"
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: "object",
+            properties: {
+              title: { type: "string" },
+              ingredients: {
+                type: "array",
+                items: { type: "string" }
+              }
+            },
+            required: ["title", "ingredients"]
+          }
         }
       };
 
@@ -1572,9 +1583,16 @@ ${allPresetNames.join(', ')}
       }
 
       const resData = await response.json();
+      if (!resData.candidates || !resData.candidates[0] || !resData.candidates[0].content || !resData.candidates[0].content.parts || !resData.candidates[0].content.parts[0]) {
+        throw new Error("Gemini API から有効な応答が得られませんでした。");
+      }
+
       const rawJson = resData.candidates[0].content.parts[0].text;
-      
-      const result = JSON.parse(rawJson.trim());
+      let cleanedJson = rawJson.trim();
+      if (cleanedJson.startsWith('```')) {
+        cleanedJson = cleanedJson.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
+      }
+      const result = JSON.parse(cleanedJson.trim());
       return result;
     }
 
