@@ -1,0 +1,1640 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ぽちっと冷蔵庫レシピ | クラシル検索ツール</title>
+  <meta name="description" content="冷蔵庫の余り物食材をぽちぽち選ぶだけで、ワンクリックでクラシルの美味しいレシピを検索できる超軽量・爆速Webツール。">
+  
+  <!-- Google Fonts & Font Awesome Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    /* ==========================================================================
+       Design System & Variables
+       ========================================================================== */
+    :root {
+      /* Color Tokens (Light Mode Default) */
+      --bg-gradient: linear-gradient(135deg, #fff5f2 0%, #fffbf0 100%);
+      --body-bg: #fbf9f6;
+      --card-bg: rgba(255, 255, 255, 0.85);
+      --card-border: rgba(255, 255, 255, 0.6);
+      --text-primary: #2d3748;
+      --text-secondary: #718096;
+      
+      --primary-color: #ff5a36; /* Warm Orange */
+      --primary-gradient: linear-gradient(135deg, #ff5a36 0%, #ff8c42 100%);
+      --primary-hover-gradient: linear-gradient(135deg, #e04e2e 0%, #e6762e 100%);
+      --primary-glow: rgba(255, 90, 54, 0.3);
+      
+      --accent-color: #ff8c42;
+      --badge-bg: rgba(255, 90, 54, 0.08);
+      --badge-text: #ff5a36;
+      --badge-border: rgba(255, 90, 54, 0.15);
+      
+      --btn-inactive-bg: #ffffff;
+      --btn-inactive-border: #e2e8f0;
+      --btn-inactive-text: #4a5568;
+      --btn-inactive-hover-bg: #f7fafc;
+      
+      --category-bg-meat: #ffebeb;
+      --category-text-meat: #e53e3e;
+      --category-bg-veg: #ebfcf2;
+      --category-text-veg: #2f855a;
+      --category-bg-mushroom: #fdf2e9;
+      --category-text-mushroom: #a0522d;
+      --category-bg-other: #ebf8ff;
+      --category-text-other: #2b6cb0;
+      
+      --shadow: 0 10px 30px -5px rgba(255, 90, 54, 0.05), 0 4px 12px -2px rgba(0, 0, 0, 0.03);
+      --shadow-lg: 0 20px 40px -15px rgba(0, 0, 0, 0.1);
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    [data-theme="dark"] {
+      /* Color Tokens (Dark Mode) */
+      --bg-gradient: linear-gradient(135deg, #111827 0%, #1f2937 100%);
+      --body-bg: #0b0f19;
+      --card-bg: rgba(30, 41, 59, 0.75);
+      --card-border: rgba(255, 255, 255, 0.06);
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      
+      --primary-color: #ff6e4a;
+      --primary-gradient: linear-gradient(135deg, #ff6e4a 0%, #ffa066 100%);
+      --primary-hover-gradient: linear-gradient(135deg, #e05e3b 0%, #e68d55 100%);
+      --primary-glow: rgba(255, 110, 74, 0.4);
+      
+      --accent-color: #ffa066;
+      --badge-bg: rgba(255, 110, 74, 0.15);
+      --badge-text: #ffa066;
+      --badge-border: rgba(255, 110, 74, 0.3);
+      
+      --btn-inactive-bg: rgba(51, 65, 85, 0.4);
+      --btn-inactive-border: rgba(255, 255, 255, 0.05);
+      --btn-inactive-text: #cbd5e1;
+      --btn-inactive-hover-bg: rgba(51, 65, 85, 0.7);
+      
+      --category-bg-meat: rgba(229, 62, 62, 0.15);
+      --category-text-meat: #fc8181;
+      --category-bg-veg: rgba(47, 133, 90, 0.15);
+      --category-text-veg: #68d391;
+      --category-bg-mushroom: rgba(160, 82, 45, 0.2);
+      --category-text-mushroom: #f0a98c;
+      --category-bg-other: rgba(43, 108, 176, 0.15);
+      --category-text-other: #63b3ed;
+      
+      --shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.3), 0 4px 12px -2px rgba(0, 0, 0, 0.2);
+      --shadow-lg: 0 20px 40px -10px rgba(0, 0, 0, 0.4);
+    }
+
+    /* ==========================================================================
+       Global resets & base styles
+       ========================================================================== */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: 'Noto Sans JP', 'Outfit', sans-serif;
+      background: var(--body-bg);
+      background-image: var(--bg-gradient);
+      background-attachment: fixed;
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      line-height: 1.6;
+      transition: background-color 0.4s ease, color 0.4s ease, background-image 0.4s ease;
+      padding-bottom: 90px; /* Space for floating footer */
+    }
+
+    /* Scrollbar Styling */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--btn-inactive-border);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--text-secondary);
+    }
+
+    /* ==========================================================================
+       Layout container
+       ========================================================================== */
+    .container {
+      width: 100%;
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 24px 16px;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* 2 Column Layout styles */
+    .app-layout {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .main-left-column {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      width: 100%;
+    }
+
+    .main-right-column {
+      width: 100%;
+    }
+
+    @media (min-width: 768px) {
+      .app-layout {
+        flex-direction: row;
+        align-items: flex-start;
+      }
+      .main-left-column {
+        flex: 1;
+        min-width: 0;
+      }
+      .main-right-column {
+        width: 320px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 24px;
+      }
+    }
+
+    /* Matched Recipes List Styling */
+    .matched-recipes-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .matched-recipe-item {
+      background: var(--btn-inactive-bg);
+      border: 1px solid var(--btn-inactive-border);
+      border-radius: 12px;
+      padding: 12px;
+      transition: var(--transition);
+    }
+
+    .matched-recipe-item:hover {
+      border-color: var(--primary-color);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow);
+    }
+
+    .matched-recipe-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      line-height: 1.4;
+      transition: var(--transition);
+    }
+
+    .matched-recipe-title:hover {
+      color: var(--primary-color);
+      text-decoration: underline;
+    }
+
+    .matched-recipe-title i {
+      font-size: 0.7rem;
+      opacity: 0.7;
+    }
+
+    .matched-recipe-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 8px;
+    }
+
+    .matched-recipe-tag {
+      font-size: 0.7rem;
+      padding: 2px 6px;
+      background: var(--btn-inactive-hover-bg);
+      color: var(--text-secondary);
+      border-radius: 6px;
+      border: 1px solid var(--btn-inactive-border);
+    }
+
+    .matched-recipe-tag.highlight {
+      background: var(--badge-bg);
+      color: var(--badge-text);
+      border-color: var(--badge-border);
+      font-weight: 500;
+    }
+
+    .matched-recipes-empty {
+      color: var(--text-secondary);
+      font-size: 0.8rem;
+      text-align: center;
+      padding: 24px 10px;
+      font-style: italic;
+    }
+
+    /* ==========================================================================
+       Header Components
+       ========================================================================== */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      margin-bottom: 8px;
+    }
+
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-icon {
+      background: var(--primary-gradient);
+      color: #ffffff;
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 4px 12px var(--primary-glow);
+      animation: logoBounce 3s infinite ease-in-out;
+    }
+
+    @keyframes logoBounce {
+      0%, 100% { transform: translateY(0) rotate(0); }
+      50% { transform: translateY(-4px) rotate(5deg); }
+    }
+
+    .app-title {
+      font-size: 1.4rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .app-subtitle {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+      margin-top: -2px;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    /* Theme Switcher & Bookmark Buttons */
+    .theme-toggle-btn {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text-primary);
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      box-shadow: var(--shadow);
+      transition: var(--transition);
+      text-decoration: none;
+    }
+
+    .theme-toggle-btn.btn-text {
+      width: auto;
+      padding: 0 14px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      gap: 6px;
+    }
+
+    .theme-toggle-btn.btn-text i {
+      color: var(--primary-color);
+      font-size: 1rem;
+    }
+
+    .theme-toggle-btn:hover {
+      transform: scale(1.03);
+      background: var(--btn-inactive-hover-bg);
+      border-color: var(--primary-color);
+    }
+
+    .theme-toggle-btn:active {
+      transform: scale(0.97);
+    }
+
+    /* ==========================================================================
+       Glass Card styles
+       ========================================================================== */
+    .glass-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(16px) saturate(180%);
+      -webkit-backdrop-filter: blur(16px) saturate(180%);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: var(--shadow);
+      transition: var(--transition);
+    }
+
+    .glass-card:hover {
+      box-shadow: var(--shadow-lg);
+    }
+
+    .section-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section-title i {
+      color: var(--primary-color);
+    }
+
+    /* ==========================================================================
+       Selected Ingredients Bar (Chips Area)
+       ========================================================================== */
+    .selected-area {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .selected-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .counter-badge {
+      background: var(--primary-color);
+      color: #ffffff;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 20px;
+      margin-left: 6px;
+      font-family: 'Outfit', sans-serif;
+    }
+
+    .clear-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 0.8rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 8px;
+      border-radius: 8px;
+      transition: var(--transition);
+    }
+
+    .clear-btn:hover {
+      color: var(--primary-color);
+      background: var(--badge-bg);
+    }
+
+    .chips-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      min-height: 40px;
+      align-items: center;
+    }
+
+    .placeholder-text {
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      font-style: italic;
+      padding: 8px 0;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.6; }
+      50% { opacity: 1; }
+    }
+
+    /* Beautiful Chip / Badge */
+    .chip {
+      background: var(--badge-bg);
+      border: 1px solid var(--badge-border);
+      color: var(--badge-text);
+      font-weight: 500;
+      font-size: 0.85rem;
+      padding: 6px 12px;
+      border-radius: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(255, 90, 54, 0.05);
+      animation: popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      transition: var(--transition);
+    }
+
+    .chip:hover {
+      background: var(--primary-color);
+      color: #ffffff;
+      border-color: var(--primary-color);
+      transform: translateY(-1px);
+    }
+
+    .chip-remove {
+      font-size: 0.75rem;
+      opacity: 0.7;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      transition: var(--transition);
+    }
+
+    .chip:hover .chip-remove {
+      opacity: 1;
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    @keyframes popIn {
+      0% { transform: scale(0.8); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    /* ==========================================================================
+       Add Custom Ingredient Input Form
+       ========================================================================== */
+    .add-form {
+      display: flex;
+      gap: 8px;
+    }
+
+    .input-wrapper {
+      position: relative;
+      flex-grow: 1;
+    }
+
+    .input-wrapper i {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      pointer-events: none;
+      transition: var(--transition);
+    }
+
+    .custom-input {
+      width: 100%;
+      padding: 12px 12px 12px 38px;
+      border-radius: 12px;
+      border: 1px solid var(--btn-inactive-border);
+      background: var(--btn-inactive-bg);
+      color: var(--text-primary);
+      font-size: 0.9rem;
+      font-family: inherit;
+      outline: none;
+      transition: var(--transition);
+    }
+
+    .custom-input:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(255, 90, 54, 0.15);
+      background: var(--card-bg);
+    }
+
+    .custom-input:focus + i {
+      color: var(--primary-color);
+    }
+
+    .add-btn {
+      background: var(--btn-inactive-bg);
+      border: 1px solid var(--btn-inactive-border);
+      color: var(--text-primary);
+      padding: 0 18px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: var(--transition);
+    }
+
+    .add-btn:hover {
+      background: var(--primary-gradient);
+      color: #ffffff;
+      border-color: transparent;
+      box-shadow: 0 4px 12px var(--primary-glow);
+    }
+
+    .add-btn:active {
+      transform: scale(0.96);
+    }
+
+    /* ==========================================================================
+       Presets Section
+       ========================================================================== */
+    .presets-container {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .category-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .category-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      width: fit-content;
+      padding: 3px 10px;
+      border-radius: 8px;
+    }
+
+    .category-meat .category-title {
+      background: var(--category-bg-meat);
+      color: var(--category-text-meat);
+    }
+    
+    .category-veg .category-title {
+      background: var(--category-bg-veg);
+      color: var(--category-text-veg);
+    }
+
+    .category-mushroom .category-title {
+      background: var(--category-bg-mushroom);
+      color: var(--category-text-mushroom);
+    }
+
+    .category-other .category-title {
+      background: var(--category-bg-other);
+      color: var(--category-text-other);
+    }
+
+    .presets-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: 8px;
+    }
+
+    /* Preset Ingredient Button */
+    .preset-btn {
+      background: var(--btn-inactive-bg);
+      border: 1px solid var(--btn-inactive-border);
+      color: var(--btn-inactive-text);
+      padding: 10px 8px;
+      border-radius: 12px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      transition: var(--transition);
+      user-select: none;
+      min-height: 54px;
+    }
+
+    .preset-btn:hover {
+      background: var(--btn-inactive-hover-bg);
+      border-color: var(--text-secondary);
+      transform: translateY(-1px);
+    }
+
+    .preset-btn:active {
+      transform: scale(0.95);
+    }
+
+    .preset-emoji {
+      font-size: 1.15rem;
+    }
+
+    /* Active Preset Button State */
+    .preset-btn.active {
+      background: var(--primary-gradient);
+      color: #ffffff;
+      border-color: transparent;
+      box-shadow: 0 4px 12px var(--primary-glow);
+      animation: buttonBounce 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @keyframes buttonBounce {
+      0% { transform: scale(0.92); }
+      70% { transform: scale(1.04); }
+      100% { transform: scale(1); }
+    }
+
+    /* Custom Added Tags List in presets (under "My ingredients") */
+    .custom-tags-group {
+      border-top: 1px dashed var(--btn-inactive-border);
+      padding-top: 16px;
+      display: none; /* Hidden by default, shown when custom tags exist */
+      animation: fadeIn 0.4s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ==========================================================================
+       Floating Footer / Search Button Area
+       ========================================================================== */
+    .floating-footer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(255, 255, 255, 0.65);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid var(--card-border);
+      padding: 16px;
+      box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.04);
+      z-index: 100;
+      display: flex;
+      justify-content: center;
+      transition: background-color 0.4s ease, border-color 0.4s ease;
+    }
+
+    [data-theme="dark"] .floating-footer {
+      background: rgba(15, 23, 42, 0.75);
+    }
+
+    .footer-content {
+      width: 100%;
+      max-width: 680px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .search-btn {
+      flex-grow: 1;
+      background: var(--primary-gradient);
+      border: none;
+      color: #ffffff;
+      padding: 14px 24px;
+      border-radius: 16px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 4px 16px var(--primary-glow);
+      transition: var(--transition);
+      text-decoration: none;
+    }
+
+    .search-btn:hover {
+      background: var(--primary-hover-gradient);
+      box-shadow: 0 6px 20px rgba(255, 90, 54, 0.45);
+      transform: translateY(-1px);
+    }
+
+    .search-btn:active {
+      transform: translateY(1px);
+      box-shadow: 0 2px 10px var(--primary-glow);
+    }
+
+    /* Disabled state for search button */
+    .search-btn:disabled {
+      background: var(--btn-inactive-bg);
+      border: 1px solid var(--btn-inactive-border);
+      color: var(--text-secondary);
+      box-shadow: none;
+      cursor: not-allowed;
+      transform: none;
+      opacity: 0.6;
+    }
+
+    .footer-clear-btn {
+      background: var(--btn-inactive-bg);
+      border: 1px solid var(--btn-inactive-border);
+      color: var(--text-primary);
+      width: 52px;
+      height: 52px;
+      border-radius: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      transition: var(--transition);
+    }
+
+    .footer-clear-btn:hover:not(:disabled) {
+      background: #ffebeb;
+      color: #e53e3e;
+      border-color: rgba(229, 62, 62, 0.2);
+    }
+
+    [data-theme="dark"] .footer-clear-btn:hover:not(:disabled) {
+      background: rgba(229, 62, 62, 0.2);
+      color: #fc8181;
+    }
+
+    .footer-clear-btn:disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+
+    /* Toast notification */
+    .toast {
+      position: fixed;
+      top: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-20px);
+      background: #2d3748;
+      color: #ffffff;
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      opacity: 0;
+      visibility: hidden;
+      box-shadow: var(--shadow-lg);
+      transition: all 0.3s ease;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .toast.show {
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* Small Screen Adjustments */
+    @media (max-width: 480px) {
+      .presets-grid {
+        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+      }
+      .preset-btn {
+        padding: 8px 4px;
+        font-size: 0.75rem;
+        min-height: 48px;
+      }
+      .preset-emoji {
+        font-size: 1rem;
+      }
+      .app-title {
+        font-size: 1.25rem;
+      }
+    }
+    /* ==========================================================================
+       Password Gate Overlay CSS
+       ========================================================================== */
+    .auth-gate {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: var(--body-bg);
+      background-image: var(--bg-gradient);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      transition: opacity 0.4s ease, visibility 0.4s ease;
+    }
+    
+    .auth-box {
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      padding: 30px 24px;
+      animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .auth-logo {
+      width: 60px;
+      height: 60px;
+      background: var(--primary-gradient);
+      color: #ffffff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      margin: 0 auto 8px;
+      box-shadow: 0 4px 14px var(--primary-glow);
+    }
+
+    .auth-desc {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      margin-top: -6px;
+    }
+
+    .auth-submit-btn {
+      width: 100%;
+      padding: 12px;
+      justify-content: center;
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin-top: 6px;
+    }
+
+    .auth-error-msg {
+      color: #e53e3e;
+      font-size: 0.8rem;
+      font-weight: 500;
+      min-height: 20px;
+    }
+    
+    /* Hide content until authenticated */
+    .app-content-wrapper {
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease;
+    }
+
+    .app-content-wrapper.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Password Gate Overlay -->
+  <div id="authGate" class="auth-gate">
+    <div class="auth-box glass-card">
+      <div class="auth-logo">
+        <i class="fa-solid fa-lock"></i>
+      </div>
+      <h2>アクセス制限</h2>
+      <p class="auth-desc">このアプリを利用するにはパスワードを入力してください。</p>
+      <form id="authForm" onsubmit="event.preventDefault();">
+        <div class="input-wrapper">
+          <input type="password" id="authPassword" class="custom-input" placeholder="パスワードを入力" required autocomplete="current-password" style="padding-left: 38px;">
+          <i class="fa-solid fa-key" style="left: 14px; top: 50%; transform: translateY(-50%);"></i>
+        </div>
+        <button type="submit" id="authSubmitBtn" class="add-btn auth-submit-btn">
+          認証する <i class="fa-solid fa-arrow-right-to-bracket"></i>
+        </button>
+      </form>
+      <div id="authError" class="auth-error-msg"></div>
+    </div>
+  </div>
+
+  <div id="appContentWrapper" class="app-content-wrapper">
+    <div class="container">
+    <!-- Header -->
+    <header>
+      <div class="logo-container">
+        <div class="logo-icon" aria-hidden="true">
+          <i class="fa-solid fa-utensils"></i>
+        </div>
+        <div>
+          <h1 class="app-title">ぽちっと冷蔵庫レシピ</h1>
+          <div class="app-subtitle">クラシル簡単連携レシピファインダー</div>
+        </div>
+      </div>
+      <div class="header-actions">
+        <a href="saved_recipes.html" target="_blank" class="theme-toggle-btn btn-text" aria-label="保存レシピを開く">
+          <i class="fa-solid fa-bookmark"></i>
+          <span>保存レシピ</span>
+        </a>
+        <button id="themeToggleBtn" class="theme-toggle-btn" aria-label="テーマ切り替え">
+          <i class="fa-solid fa-moon"></i>
+        </button>
+      </div>
+    </header>
+
+    <div class="app-layout">
+      <!-- Left Column (Ingredients selection & presets) -->
+      <div class="main-left-column">
+        <!-- Selected Ingredients Card -->
+        <main class="glass-card selected-area">
+          <div class="selected-header">
+            <h2 class="section-title">
+              <i class="fa-solid fa-basket-shopping"></i>
+              選択した食材
+              <span id="counter" class="counter-badge">0</span>
+            </h2>
+            <button id="clearBtn" class="clear-btn" aria-label="選択をすべてクリア">
+              <i class="fa-solid fa-trash-can"></i>
+              すべてクリア
+            </button>
+          </div>
+          
+          <div id="chipsContainer" class="chips-container">
+            <div id="placeholderText" class="placeholder-text">
+              冷蔵庫にある食材を下のリストから選ぶか、追加してください。
+            </div>
+          </div>
+        </main>
+
+        <!-- Custom Entry Form -->
+        <section class="glass-card">
+          <h2 class="section-title">
+            <i class="fa-solid fa-plus-circle"></i>
+            リストにない食材を追加
+          </h2>
+          <form id="addForm" class="add-form" onsubmit="event.preventDefault();">
+            <div class="input-wrapper">
+              <input 
+                type="text" 
+                id="customInput" 
+                class="custom-input" 
+                placeholder="例: アボカド、豆苗、もやし..." 
+                maxlength="15"
+                autocomplete="off"
+                aria-label="新しい食材名"
+              >
+              <i class="fa-solid fa-seedling"></i>
+            </div>
+            <button type="submit" id="addBtn" class="add-btn">
+              <i class="fa-solid fa-plus"></i> 追加
+            </button>
+          </form>
+        </section>
+
+        <!-- Preset Lists -->
+        <section class="glass-card presets-container">
+          <h2 class="section-title">
+            <i class="fa-solid fa-layer-group"></i>
+            定番食材をえらぶ
+          </h2>
+
+          <!-- Meat & Fish Category -->
+          <div class="category-group category-meat">
+            <div class="category-title"><i class="fa-solid fa-meat"></i> 肉・魚</div>
+            <div class="presets-grid" id="meatGrid"></div>
+          </div>
+
+          <!-- Veg Category -->
+          <div class="category-group category-veg">
+            <div class="category-title"><i class="fa-solid fa-carrot"></i> 野菜</div>
+            <div class="presets-grid" id="vegGrid"></div>
+          </div>
+
+          <!-- Mushroom Category -->
+          <div class="category-group category-mushroom">
+            <div class="category-title"><i class="fa-solid fa-leaf"></i> キノコ</div>
+            <div class="presets-grid" id="mushroomGrid"></div>
+          </div>
+
+          <!-- Others Category -->
+          <div class="category-group category-other">
+            <div class="category-title"><i class="fa-solid fa-egg"></i> その他</div>
+            <div class="presets-grid" id="otherGrid"></div>
+          </div>
+
+          <!-- Custom Added Tags List -->
+          <div class="category-group custom-tags-group" id="customTagsGroup">
+            <div class="category-title"><i class="fa-solid fa-tags"></i> 追加した食材</div>
+            <div class="presets-grid" id="customTagsGrid"></div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Right Column (Matching Recipes list) -->
+      <aside class="main-right-column glass-card" id="matchRecipesCard">
+        <h2 class="section-title">
+          <i class="fa-solid fa-lightbulb"></i>
+          作れる保存レシピ
+        </h2>
+        <p class="desc-text">選択中の食材がすべて含まれる、あなたの保存レシピです。</p>
+        <div id="matchedRecipesList" class="matched-recipes-list">
+          <!-- Rendered matching list goes here -->
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <!-- Floating Footer & Actions -->
+  <footer class="floating-footer">
+    <div class="footer-content">
+      <button id="footerClearBtn" class="footer-clear-btn" title="選択をすべてクリア" aria-label="選択をすべてクリア">
+        <i class="fa-solid fa-rotate-left"></i>
+      </button>
+      <button id="searchBtn" class="search-btn">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <span id="searchBtnText">レシピを検索</span>
+      </button>
+    </div>
+  </footer>
+
+  <!-- Toast Element -->
+  <div id="toast" class="toast" role="alert" aria-live="assertive"></div>
+
+  <!-- ==========================================================================
+       Application Logic
+       ========================================================================== -->
+  <script>
+    // --- Data Definitions ---
+    const presets = {
+      meat: [
+        { name: "牛肉", emoji: "🥩" },
+        { name: "豚肉", emoji: "🍖" },
+        { name: "鶏肉", emoji: "🍗" },
+        { name: "ひき肉", emoji: "🥓" },
+        { name: "鮭", emoji: "🐟" },
+        { name: "サバ", emoji: "🐟" },
+        { name: "タラ", emoji: "🐟" },
+        { name: "ブリ", emoji: "🐟" },
+        { name: "しらす", emoji: "🐟" },
+        { name: "ソーセージ", emoji: "🌭" }
+      ],
+      veg: [
+        { name: "玉ねぎ", emoji: "🧅" },
+        { name: "にんじん", emoji: "🥕" },
+        { name: "キャベツ", emoji: "🥬" },
+        { name: "レタス", emoji: "🥬" },
+        { name: "ナス", emoji: "🍆" },
+        { name: "じゃがいも", emoji: "🥔" },
+        { name: "アスパラガス", emoji: "🌱" },
+        { name: "ブロッコリー", emoji: "🥦" },
+        { name: "ほうれん草", emoji: "🥬" },
+        { name: "小松菜", emoji: "🥬" },
+        { name: "豆苗", emoji: "🌱" },
+        { name: "アボカド", emoji: "🥑" },
+        { name: "大根", emoji: "🥗" },
+        { name: "白菜", emoji: "🥬" },
+        { name: "ピーマン", emoji: "🫑" },
+        { name: "ねぎ", emoji: "🌱" },
+        { name: "トマト", emoji: "🍅" }
+      ],
+      mushroom: [
+        { name: "えのき", emoji: "🍄" },
+        { name: "しめじ", emoji: "🍄" },
+        { name: "しいたけ", emoji: "🍄" },
+        { name: "エリンギ", emoji: "🍄" },
+        { name: "舞茸", emoji: "🍄" }
+      ],
+      other: [
+        { name: "卵", emoji: "🥚" },
+        { name: "納豆", emoji: "🥣" },
+        { name: "キムチ", emoji: "🌶️" },
+        { name: "豆腐", emoji: "⬜" },
+        { name: "チーズ", emoji: "🧀" },
+        { name: "うどん", emoji: "🍜" },
+        { name: "パスタ", emoji: "🍝" },
+        { name: "そうめん", emoji: "🍜" }
+      ]
+    };
+
+    // --- State Management ---
+    // selectedIngredients manages all actively selected ingredients
+    const selectedIngredients = new Set();
+    
+    // customIngredients manages user-added ingredients (persisted to localStorage)
+    let customIngredients = [];
+
+    // --- DOM Elements ---
+    const meatGrid = document.getElementById('meatGrid');
+    const vegGrid = document.getElementById('vegGrid');
+    const mushroomGrid = document.getElementById('mushroomGrid');
+    const otherGrid = document.getElementById('otherGrid');
+    const customTagsGrid = document.getElementById('customTagsGrid');
+    const customTagsGroup = document.getElementById('customTagsGroup');
+    const chipsContainer = document.getElementById('chipsContainer');
+    const placeholderText = document.getElementById('placeholderText');
+    const counterBadge = document.getElementById('counter');
+    const customInput = document.getElementById('customInput');
+    const addForm = document.getElementById('addForm');
+    const searchBtn = document.getElementById('searchBtn');
+    const searchBtnText = document.getElementById('searchBtnText');
+    const clearBtn = document.getElementById('clearBtn');
+    const footerClearBtn = document.getElementById('footerClearBtn');
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+    const toast = document.getElementById('toast');
+
+    // --- LocalStorage & Cross-Tab Syncer ---
+    function initLocalStorage() {
+      // Load Theme Settings
+      const savedTheme = localStorage.getItem('theme');
+      if (savedTheme) {
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        updateThemeIcon(savedTheme);
+      } else {
+        const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const defaultTheme = systemPrefersDark ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', defaultTheme);
+        updateThemeIcon(defaultTheme);
+      }
+
+      // Load Custom Ingredients
+      const savedCustom = localStorage.getItem('customIngredients');
+      if (savedCustom) {
+        try {
+          customIngredients = JSON.parse(savedCustom);
+          renderCustomGrid();
+        } catch (e) {
+          console.error("Error loading custom ingredients", e);
+        }
+      }
+
+      // Load Saved Recipes
+      loadSavedRecipes();
+
+      // Load initial selected ingredients from cross-tab shared storage
+      loadSelectedFromShared();
+    }
+
+    function saveCustomIngredients() {
+      localStorage.setItem('customIngredients', JSON.stringify(customIngredients));
+    }
+
+    let savedRecipes = [];
+    function loadSavedRecipes() {
+      const saved = localStorage.getItem('savedRecipes');
+      if (saved) {
+        try {
+          savedRecipes = JSON.parse(saved);
+        } catch (e) {
+          console.error("Error parsing saved recipes", e);
+        }
+      }
+    }
+
+    function renderMatchedRecipes() {
+      const listContainer = document.getElementById('matchedRecipesList');
+      if (!listContainer) return;
+      listContainer.innerHTML = '';
+      
+      loadSavedRecipes();
+      
+      const size = selectedIngredients.size;
+      if (size === 0) {
+        listContainer.innerHTML = `
+          <div class="matched-recipes-empty">
+            <i class="fa-solid fa-basket-shopping" style="margin-bottom: 8px; display: block; font-size: 1.2rem; opacity: 0.5;"></i>
+            食材を選択すると、作れる保存レシピが表示されます。
+          </div>
+        `;
+        return;
+      }
+      
+      const selectedArray = Array.from(selectedIngredients);
+      const matched = savedRecipes.filter(recipe => {
+        if (!recipe.tags || recipe.tags.length === 0) return false;
+        return selectedArray.every(ing => recipe.tags.includes(ing));
+      });
+      
+      if (matched.length === 0) {
+        listContainer.innerHTML = `
+          <div class="matched-recipes-empty">
+            <i class="fa-solid fa-magnifying-glass" style="margin-bottom: 8px; display: block; font-size: 1.2rem; opacity: 0.5;"></i>
+            選択中の食材すべてを含む保存レシピはありません。
+          </div>
+        `;
+        return;
+      }
+      
+      matched.forEach(recipe => {
+        const item = document.createElement('div');
+        item.className = 'matched-recipe-item';
+        
+        let tagsHtml = '';
+        if (recipe.tags) {
+          recipe.tags.forEach(t => {
+            const isSelected = selectedIngredients.has(t);
+            tagsHtml += `<span class="matched-recipe-tag ${isSelected ? 'highlight' : ''}">${t}</span>`;
+          });
+        }
+        
+        const hasUrl = recipe.url && recipe.url.startsWith('http');
+        const titleElement = hasUrl
+          ? `<a href="${recipe.url}" target="_blank" rel="noopener noreferrer" class="matched-recipe-title">
+               <span>${recipe.title}</span> <i class="fa-solid fa-arrow-up-right-from-square"></i>
+             </a>`
+          : `<span class="matched-recipe-title" style="cursor: default;">${recipe.title}</span>`;
+          
+        item.innerHTML = `
+          ${titleElement}
+          <div class="matched-recipe-tags">
+            ${tagsHtml}
+          </div>
+        `;
+        listContainer.appendChild(item);
+      });
+    }
+
+    function saveSelectedToShared() {
+      localStorage.setItem('selectedIngredientsShared', JSON.stringify(Array.from(selectedIngredients)));
+    }
+
+    function loadSelectedFromShared() {
+      const shared = localStorage.getItem('selectedIngredientsShared');
+      if (shared) {
+        try {
+          const arr = JSON.parse(shared);
+          selectedIngredients.clear();
+          arr.forEach(item => selectedIngredients.add(item));
+          updateUI(false); // Do not trigger save back to avoid loops
+        } catch(e) {
+          console.error("Error loading shared selected ingredients", e);
+        }
+      }
+    }
+
+    // --- Theme Switcher Logic ---
+    function toggleTheme() {
+      const currentTheme = document.documentElement.getAttribute('data-theme');
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', newTheme);
+      localStorage.setItem('theme', newTheme);
+      updateThemeIcon(newTheme);
+      showToast(newTheme === 'dark' ? 'ダークモードに切り替えました' : 'ライトモードに切り替えました', 'fa-circle-half-stroke');
+    }
+
+    function updateThemeIcon(theme) {
+      const icon = themeToggleBtn.querySelector('i');
+      if (theme === 'dark') {
+        icon.className = 'fa-solid fa-sun';
+      } else {
+        icon.className = 'fa-solid fa-moon';
+      }
+    }
+
+    // --- Toast Notification ---
+    let toastTimeout;
+    function showToast(message, iconClass = 'fa-info-circle') {
+      clearTimeout(toastTimeout);
+      toast.innerHTML = `<i class="fa-solid ${iconClass}"></i><span>${message}</span>`;
+      toast.classList.add('show');
+      toastTimeout = setTimeout(() => {
+        toast.classList.remove('show');
+      }, 2000);
+    }
+
+    // --- UI Renderers ---
+    
+    // Renders the preset ingredient grids
+    function renderPresets() {
+      const renderGrid = (grid, list) => {
+        grid.innerHTML = '';
+        list.forEach(item => {
+          const button = document.createElement('button');
+          button.className = 'preset-btn';
+          button.setAttribute('data-name', item.name);
+          button.setAttribute('aria-pressed', 'false');
+          button.innerHTML = `
+            <span class="preset-emoji" aria-hidden="true">${item.emoji}</span>
+            <span>${item.name}</span>
+          `;
+          button.addEventListener('click', () => toggleIngredient(item.name));
+          grid.appendChild(button);
+        });
+      };
+
+      renderGrid(meatGrid, presets.meat);
+      renderGrid(vegGrid, presets.veg);
+      renderGrid(mushroomGrid, presets.mushroom);
+      renderGrid(otherGrid, presets.other);
+    }
+
+    // Renders custom tags added by the user
+    function renderCustomGrid() {
+      customTagsGrid.innerHTML = '';
+      if (customIngredients.length > 0) {
+        customTagsGroup.style.display = 'flex';
+        customIngredients.forEach(name => {
+          const button = document.createElement('button');
+          button.className = 'preset-btn';
+          button.setAttribute('data-name', name);
+          button.setAttribute('aria-pressed', 'false');
+          button.innerHTML = `
+            <span class="preset-emoji" aria-hidden="true">🏷️</span>
+            <span>${name}</span>
+          `;
+          button.addEventListener('click', () => toggleIngredient(name));
+          customTagsGrid.appendChild(button);
+        });
+      } else {
+        customTagsGroup.style.display = 'none';
+      }
+    }
+
+    // Sync button UI states with the selected set
+    function syncButtonStates() {
+      document.querySelectorAll('.preset-btn').forEach(btn => {
+        const name = btn.getAttribute('data-name');
+        const isActive = selectedIngredients.has(name);
+        if (isActive) {
+          btn.classList.add('active');
+          btn.setAttribute('aria-pressed', 'true');
+        } else {
+          btn.classList.remove('active');
+          btn.setAttribute('aria-pressed', 'false');
+        }
+      });
+    }
+
+    // Render the chips/badges in the upper panel
+    function renderSelectedChips() {
+      const chips = chipsContainer.querySelectorAll('.chip');
+      chips.forEach(chip => chip.remove());
+
+      if (selectedIngredients.size > 0) {
+        placeholderText.style.display = 'none';
+        
+        selectedIngredients.forEach(name => {
+          const chip = document.createElement('button');
+          chip.className = 'chip';
+          chip.innerHTML = `
+            <span>${name}</span>
+            <span class="chip-remove" aria-label="${name}を削除"><i class="fa-solid fa-xmark"></i></span>
+          `;
+          chip.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleIngredient(name);
+          });
+          chipsContainer.appendChild(chip);
+        });
+      } else {
+        placeholderText.style.display = 'block';
+      }
+
+      // Update counters
+      const size = selectedIngredients.size;
+      counterBadge.textContent = size;
+      
+      // Update action buttons state
+      if (size > 0) {
+        searchBtn.removeAttribute('disabled');
+        searchBtnText.textContent = `${size}件の食材でレシピを検索`;
+        clearBtn.style.opacity = '1';
+        clearBtn.removeAttribute('disabled');
+        footerClearBtn.removeAttribute('disabled');
+      } else {
+        searchBtn.setAttribute('disabled', 'true');
+        searchBtnText.textContent = `食材を選んでレシピを検索`;
+        clearBtn.style.opacity = '0.5';
+        clearBtn.setAttribute('disabled', 'true');
+        footerClearBtn.setAttribute('disabled', 'true');
+      }
+    }
+
+    // --- State Handlers ---
+
+    // Toggle active state of an ingredient
+    function toggleIngredient(name) {
+      if (selectedIngredients.has(name)) {
+        selectedIngredients.delete(name);
+      } else {
+        selectedIngredients.add(name);
+      }
+      updateUI();
+    }
+
+    // Master update UI function
+    function updateUI(saveToShared = true) {
+      syncButtonStates();
+      renderSelectedChips();
+      renderMatchedRecipes();
+      if (saveToShared) {
+        saveSelectedToShared();
+      }
+    }
+
+    // Add custom ingredient from input form
+    function handleAddCustomIngredient() {
+      const name = customInput.value.trim().replace(/\s+/g, '');
+      if (!name) {
+        showToast('食材名を入力してください', 'fa-circle-exclamation');
+        return;
+      }
+
+      const allPresets = [...presets.meat, ...presets.veg, ...presets.mushroom, ...presets.other].map(i => i.name);
+      
+      if (allPresets.includes(name)) {
+        if (!selectedIngredients.has(name)) {
+          selectedIngredients.add(name);
+          updateUI();
+          showToast(`「${name}」を選択しました`, 'fa-circle-check');
+        } else {
+          showToast(`「${name}」は既に選択されています`, 'fa-circle-info');
+        }
+      } else if (customIngredients.includes(name)) {
+        if (!selectedIngredients.has(name)) {
+          selectedIngredients.add(name);
+          updateUI();
+          showToast(`「${name}」を選択しました`, 'fa-circle-check');
+        } else {
+          showToast(`「${name}」は既に選択されています`, 'fa-circle-info');
+        }
+      } else {
+        customIngredients.unshift(name);
+        if (customIngredients.length > 24) {
+          customIngredients.pop();
+        }
+        saveCustomIngredients();
+        renderCustomGrid();
+        
+        selectedIngredients.add(name);
+        updateUI();
+        showToast(`「${name}」を追加して選択しました`, 'fa-circle-check');
+      }
+
+      customInput.value = '';
+      customInput.focus();
+    }
+
+    // Clear all selected ingredients
+    function clearAll() {
+      if (selectedIngredients.size === 0) return;
+      selectedIngredients.clear();
+      updateUI();
+      showToast('選択をすべてクリアしました', 'fa-trash-can');
+    }
+
+    // --- Password Verification Logic ---
+    const AUTH_HASH = "89ddb1ed5f7d01fb5707ba5192373df50b116db07403d6c9570c63f4c153dae1"; // kurashiru123
+
+    async function sha256(message) {
+      const msgBuffer = new TextEncoder().encode(message);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    function checkAuth() {
+      const isAuth = localStorage.getItem('app_authenticated');
+      const gate = document.getElementById('authGate');
+      const wrapper = document.getElementById('appContentWrapper');
+
+      if (isAuth === 'true') {
+        if (gate) gate.style.display = 'none';
+        if (wrapper) wrapper.classList.add('visible');
+      } else {
+        if (gate) gate.style.display = 'flex';
+        if (wrapper) wrapper.classList.remove('visible');
+      }
+    }
+
+    async function handleAuthSubmit() {
+      const passwordInput = document.getElementById('authPassword');
+      const errorMsg = document.getElementById('authError');
+      const submitBtn = document.getElementById('authSubmitBtn');
+      
+      const password = passwordInput.value;
+      if (!password) return;
+
+      submitBtn.setAttribute('disabled', 'true');
+      submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 検証中...';
+
+      try {
+        const hashed = await sha256(password);
+        if (hashed === AUTH_HASH) {
+          localStorage.setItem('app_authenticated', 'true');
+          showToast('認証に成功しました！', 'fa-circle-check');
+          
+          const gate = document.getElementById('authGate');
+          const wrapper = document.getElementById('appContentWrapper');
+          
+          gate.style.opacity = '0';
+          setTimeout(() => {
+            gate.style.display = 'none';
+            wrapper.classList.add('visible');
+          }, 400);
+
+        } else {
+          errorMsg.textContent = 'パスワードが違います。';
+          passwordInput.value = '';
+          passwordInput.focus();
+        }
+      } catch (e) {
+        console.error("Auth error", e);
+        errorMsg.textContent = 'エラーが発生しました。';
+      } finally {
+        submitBtn.removeAttribute('disabled');
+        submitBtn.innerHTML = '認証する <i class="fa-solid fa-arrow-right-to-bracket"></i>';
+      }
+    }
+
+    // --- Search action (Open Kurashiru Search URL) ---
+    function searchRecipes() {
+      if (selectedIngredients.size === 0) {
+        showToast('食材を1つ以上選択してください', 'fa-circle-exclamation');
+        return;
+      }
+
+      const queryArray = Array.from(selectedIngredients);
+      const queryString = queryArray.join(' ');
+      const searchUrl = `https://www.kurashiru.com/search?query=${encodeURIComponent(queryString)}`;
+      
+      showToast('クラシルに接続します...', 'fa-arrow-up-right-from-square');
+      
+      setTimeout(() => {
+        window.open(searchUrl, '_blank', 'noopener,noreferrer');
+      }, 500);
+    }
+
+    // --- Event Listeners Setup ---
+    function setupEventListeners() {
+      addForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        handleAddCustomIngredient();
+      });
+
+      clearBtn.addEventListener('click', clearAll);
+      footerClearBtn.addEventListener('click', clearAll);
+
+      searchBtn.addEventListener('click', searchRecipes);
+
+      themeToggleBtn.addEventListener('click', toggleTheme);
+
+      customInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          handleAddCustomIngredient();
+        }
+      });
+
+      // Synchronize selection state if modified on another page (saved_recipes.html)
+      window.addEventListener('storage', (e) => {
+        if (e.key === 'selectedIngredientsShared') {
+          loadSelectedFromShared();
+        }
+        if (e.key === 'savedRecipes') {
+          renderMatchedRecipes();
+        }
+      });
+
+      // Synchronize when the tab becomes focused again
+      window.addEventListener('focus', () => {
+        loadSelectedFromShared();
+        renderMatchedRecipes();
+      });
+      // Password gate listener
+      document.getElementById('authForm').addEventListener('submit', handleAuthSubmit);
+      checkAuth();
+    }
+
+    // --- Initialization ---
+    document.addEventListener('DOMContentLoaded', () => {
+      initLocalStorage();
+      renderPresets();
+      updateUI(false);
+      setupEventListeners();
+    });
+  </script>
+    </div>
+  </div>
+</body>
+</html>
