@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ぽちっと冷蔵庫レシピver1.1.2 | レシピ検索ツール</title>
+  <title>ぽちっと冷蔵庫レシピver1.1.3 | レシピ検索ツール</title>
   <meta name="description" content="冷蔵庫の余り物食材をぽちぽち選ぶだけで、ワンクリックでクラシルの美味しいレシピを検索できる超軽量・爆速Webツール。">
   
   <!-- Google Fonts & Font Awesome Icons -->
@@ -1357,7 +1357,7 @@
           <i class="fa-solid fa-utensils"></i>
         </div>
         <div>
-          <h1 class="app-title">ぽちっと冷蔵庫レシピver1.1.2</h1>
+          <h1 class="app-title">ぽちっと冷蔵庫レシピver1.1.3</h1>
           <div class="app-subtitle">クラシル・デリッシュキッチン簡単連携レシピファインダー</div>
         </div>
       </div>
@@ -1566,45 +1566,64 @@
 
   <!-- AI Recipe Proposal Modal -->
   <div id="aiProposeModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="aiProposeModalTitle">
-    <div class="modal-content glass-card" style="max-width: 600px; width: 95%;">
+    <div class="modal-content glass-card" style="max-width: 750px; width: 95%;">
       <div class="modal-header">
         <h3 id="aiProposeModalTitle" class="modal-title" style="background: linear-gradient(135deg, #8a2be2 0%, #4a00e0 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-          <i class="fa-solid fa-wand-magic-sparkles" style="color: #8a2be2;"></i> AIレシピ提案 (Gemini連携)
+          <i class="fa-solid fa-wand-magic-sparkles" style="color: #8a2be2;"></i> AIおすすめレシピ提案
         </h3>
         <button type="button" id="closeAiProposeModalBtn" class="close-modal-btn" aria-label="閉じる">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
       
-      <div style="display: flex; flex-direction: column; gap: 16px; margin-top: 16px;">
-        <div style="background: var(--bg-secondary); border-radius: 12px; padding: 16px; text-align: center; border: 1px solid var(--border-color);">
-          <i class="fa-solid fa-circle-check" style="font-size: 2rem; color: #10b981; margin-bottom: 8px;"></i>
-          <h4 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 4px; color: var(--text-primary);">提案用の指示文をコピーしました！</h4>
-          <p class="desc-text" style="font-size: 0.9rem; margin-top: 4px;">クリップボードに提案用のプロンプトがコピーされています。</p>
+      <!-- Loading State -->
+      <div id="aiProposeLoading" class="ai-loading-container" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; gap: 16px;">
+        <div class="ai-spinner">
+          <i class="fa-solid fa-rotate fa-spin" style="font-size: 2.5rem; color: #8a2be2;"></i>
         </div>
+        <h4 style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary);">AIが特製レシピを考案中...</h4>
+        <p class="desc-text" style="text-align: center;">選択された食材にマッチする美味しいレシピを、<br>クラシル風・デリッシュキッチン風で1点ずつ作成しています。しばらくお待ちください。</p>
+      </div>
 
-        <div style="display: flex; flex-direction: column; gap: 10px;">
-          <p style="font-size: 0.95rem; font-weight: 600; color: var(--text-primary);">📝 次の手順：</p>
-          <ol style="margin-left: 20px; font-size: 0.9rem; line-height: 1.6; color: var(--text-secondary);">
-            <li>下の「<strong style="color: #8a2be2;">Gemini を開く</strong>」ボタンを押します。</li>
-            <li>開いた Gemini の入力欄に<strong style="color: #8a2be2;">「貼り付け (ペースト)」</strong>します。</li>
-            <li>送信ボタンを押すと、AIがレシピを提案してくれます！</li>
-          </ol>
+      <!-- Result State -->
+      <div id="aiProposeResult" style="display: none; flex-direction: column; gap: 20px; margin-top: 16px;">
+        <div class="ai-recipe-grid">
+          <!-- Kurashiru Card -->
+          <div class="ai-recipe-card kurashiru-style">
+            <div class="ai-card-badge kurashiru">クラシル風レシピ</div>
+            <h4 id="aiKurashiruTitle" class="ai-recipe-title">---</h4>
+            <p id="aiKurashiruDesc" class="ai-recipe-desc">---</p>
+            <div class="ai-recipe-section">
+              <h5><i class="fa-solid fa-utensils"></i> 材料 (2人前)</h5>
+              <ul id="aiKurashiruIngredients" class="ai-recipe-list"></ul>
+            </div>
+            <div class="ai-recipe-section">
+              <h5><i class="fa-solid fa-list-ol"></i> 作り方</h5>
+              <ol id="aiKurashiruSteps" class="ai-recipe-list steps"></ol>
+            </div>
+            <button type="button" id="aiKurashiruSearchBtn" class="ai-search-redirect-btn">
+              <i class="fa-solid fa-magnifying-glass"></i> クラシルで似たレシピを探す
+            </button>
+          </div>
+
+          <!-- Delish Kitchen Card -->
+          <div class="ai-recipe-card delish-style">
+            <div class="ai-card-badge delish">デリッシュキッチン風レシピ</div>
+            <h4 id="aiDelishTitle" class="ai-recipe-title">---</h4>
+            <p id="aiDelishDesc" class="ai-recipe-desc">---</p>
+            <div class="ai-recipe-section">
+              <h5><i class="fa-solid fa-utensils"></i> 材料 (2人前)</h5>
+              <ul id="aiDelishIngredients" class="ai-recipe-list"></ul>
+            </div>
+            <div class="ai-recipe-section">
+              <h5><i class="fa-solid fa-list-ol"></i> 作り方</h5>
+              <ol id="aiDelishSteps" class="ai-recipe-list steps"></ol>
+            </div>
+            <button type="button" id="aiDelishSearchBtn" class="ai-search-redirect-btn">
+              <i class="fa-solid fa-magnifying-glass"></i> デリッシュキッチンで探す
+            </button>
+          </div>
         </div>
-
-        <button type="button" id="openGeminiBtn" class="modal-btn save" style="width: 100%; padding: 12px; font-size: 1rem; font-weight: 700; justify-content: center; gap: 8px; background: linear-gradient(135deg, #8a2be2 0%, #4a00e0 100%); border: none;">
-          <i class="fa-solid fa-arrow-up-right-from-square"></i> Gemini を開く
-        </button>
-
-        <details style="margin-top: 8px; border: 1px solid var(--border-color); border-radius: 8px; padding: 8px;">
-          <summary style="font-size: 0.85rem; color: var(--text-secondary); cursor: pointer; user-select: none;">
-            コピーされた指示文（プロンプト）の確認・手動コピー
-          </summary>
-          <textarea id="aiPromptTextarea" readonly style="width: 100%; height: 150px; margin-top: 8px; padding: 8px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); font-size: 0.8rem; font-family: monospace; resize: none;"></textarea>
-          <button type="button" id="manualCopyBtn" class="modal-btn cancel" style="width: 100%; margin-top: 8px; padding: 6px; font-size: 0.8rem; justify-content: center; gap: 6px;">
-            <i class="fa-solid fa-copy"></i> 指示文をもう一度コピーする
-          </button>
-        </details>
       </div>
     </div>
   </div>
@@ -2131,79 +2150,139 @@
       }
     }
 
-    // --- Gemini AI Recipe Proposal Logic ---
+    async function requestAiProposal(ingredients, apiKey) {
+      const systemPrompt = `あなたはプロの料理研究家です。ユーザーが指定した冷蔵庫の食材を組み合わせて、
+1. クラシル風（簡単、定番、時短家庭料理）のレシピ
+2. デリッシュキッチン風（SNS映え、少しアイデアの効いたおしゃれな料理）のレシピ
+の2点を考案してください。
+
+指定された食材: ${ingredients.join(', ')}
+
+必ず以下のJSONフォーマットのみを返してください。追加の説明やマークダウンのコードブロック( \`\`\`json 等 )は一切含めないでください。
+
+{
+  "kurashiru": {
+    "title": "レシピ名",
+    "description": "料理の特徴やアピールポイント（50文字程度）",
+    "ingredients": ["材料名 分量1", "材料名 分量2", ...],
+    "steps": ["手順1", "手順2", ...]
+  },
+  "delish": {
+    "title": "レシピ名",
+    "description": "料理の特徴やアピールポイント（50文字程度）",
+    "ingredients": ["材料名 分量1", "材料名 分量2", ...],
+    "steps": ["手順1", "手順2", ...]
+  }
+}`;
+
+      // 安定版での404エラーを防ぐため v1beta エンドポイントを使用
+      const requestUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+      const payload = {
+        contents: [
+          {
+            role: "user",
+            parts: [{ text: systemPrompt }]
+          }
+        ]
+      };
+
+      const response = await fetch(requestUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Gemini API Error (${response.status}): ${errorText}`);
+      }
+
+      const resData = await response.json();
+      if (!resData.candidates || !resData.candidates[0] || !resData.candidates[0].content || !resData.candidates[0].content.parts || !resData.candidates[0].content.parts[0]) {
+        throw new Error("Gemini API から有効な応答が得られませんでした。");
+      }
+      
+      const rawJson = resData.candidates[0].content.parts[0].text;
+      let cleanedJson = rawJson.trim();
+      
+      // 非常に堅牢なJSON抽出ロジック
+      const jsonMatch = cleanedJson.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        cleanedJson = jsonMatch[0];
+      }
+      return JSON.parse(cleanedJson.trim());
+    }
+
     async function handleAiPropose() {
       if (selectedIngredients.size === 0) {
         showToast('食材を1つ以上選択してください', 'fa-circle-exclamation');
         return;
       }
 
-      const ingredientsList = Array.from(selectedIngredients).join('、');
-      const promptText = `あなたはプロの料理研究家です。以下の食材を組み合わせて、レシピを考案してください。
-
-指定された食材: ${ingredientsList}
-
-以下の2つのレシピを提案してください。
-1. クラシル風（簡単、定番、時短家庭料理）のレシピ
-2. デリッシュキッチン風（SNS映え、少しアイデアの効いたおしゃれな料理）のレシピ
-
-それぞれのレシピについて、以下の項目を出力してください。
-・レシピ名
-・料理の特徴（50文字程度）
-・材料と分量
-・調理手順`;
-
-      // モーダル内のテキストエリアにセット
-      const promptTextarea = document.getElementById('aiPromptTextarea');
-      if (promptTextarea) {
-        promptTextarea.value = promptText;
+      const apiKey = localStorage.getItem('gemini_api_key');
+      if (!apiKey) {
+        showToast('AI提案にはAPIキーの設定が必要です', 'fa-circle-exclamation');
+        openSettingsModal();
+        return;
       }
 
-      // クリップボードにコピー
-      try {
-        await navigator.clipboard.writeText(promptText);
-        showToast('提案指示をコピーしました！', 'fa-circle-check');
-      } catch (err) {
-        console.error("Clipboard copy failed, trying alternative copy method", err);
-        const textArea = document.createElement("textarea");
-        textArea.value = promptText;
-        textArea.style.position = "fixed";
-        document.body.appendChild(textArea);
-        textArea.focus();
-        textArea.select();
-        try {
-          document.execCommand('copy');
-          showToast('提案指示をコピーしました！', 'fa-circle-check');
-        } catch (copyErr) {
-          showToast('コピーに失敗しました。詳細からコピーしてください。', 'fa-circle-exclamation');
-        }
-        document.body.removeChild(textArea);
-      }
-
-      // Geminiを開くボタンのアクションを設定
-      const openGeminiBtn = document.getElementById('openGeminiBtn');
-      if (openGeminiBtn) {
-        openGeminiBtn.onclick = () => {
-          window.open('https://gemini.google.com/', '_blank', 'noopener,noreferrer');
-        };
-      }
-
-      // 手動コピーボタンのアクションを設定
-      const manualCopyBtn = document.getElementById('manualCopyBtn');
-      if (manualCopyBtn) {
-        manualCopyBtn.onclick = async () => {
-          try {
-            await navigator.clipboard.writeText(promptText);
-            showToast('指示文をコピーしました！', 'fa-circle-check');
-          } catch (e) {
-            promptTextarea.select();
-            showToast('選択されました。長押しまたはCtrl+Cでコピーしてください。', 'fa-circle-info');
-          }
-        };
-      }
-
-      // モーダルを開く
+      // Open Modal in Loading State
+      const aiProposeLoading = document.getElementById('aiProposeLoading');
+      const aiProposeResult = document.getElementById('aiProposeResult');
+      aiProposeLoading.style.display = 'flex';
+      aiProposeResult.style.display = 'none';
       aiProposeModal.classList.add('open');
+
+      try {
+        const result = await requestAiProposal(Array.from(selectedIngredients), apiKey);
+        
+        const formatIngredients = (ingList) => {
+          return ingList.map(i => {
+            let name = i;
+            let amount = '';
+            const match = i.match(/^([^ 　:：(（]+)[ 　:：(（](.+)$/);
+            if (match) {
+              name = match[1];
+              amount = match[2].replace(/[)）]$/, '');
+            }
+            return `<li><span>${name}</span><span style="color: var(--text-secondary); font-weight: 500;">${amount}</span></li>`;
+          }).join('');
+        };
+
+        // Render Kurashiru suggestion
+        document.getElementById('aiKurashiruTitle').textContent = result.kurashiru.title;
+        document.getElementById('aiKurashiruDesc').textContent = result.kurashiru.description;
+        document.getElementById('aiKurashiruIngredients').innerHTML = formatIngredients(result.kurashiru.ingredients);
+        document.getElementById('aiKurashiruSteps').innerHTML = result.kurashiru.steps.map(s => `<li>${s}</li>`).join('');
+        
+        // Setup Search Redirect for Kurashiru title
+        document.getElementById('aiKurashiruSearchBtn').onclick = () => {
+          const searchUrl = `https://www.kurashiru.com/search?query=${encodeURIComponent(result.kurashiru.title)}`;
+          window.open(searchUrl, '_blank', 'noopener,noreferrer');
+        };
+
+        // Render Delish suggestion
+        document.getElementById('aiDelishTitle').textContent = result.delish.title;
+        document.getElementById('aiDelishDesc').textContent = result.delish.description;
+        document.getElementById('aiDelishIngredients').innerHTML = formatIngredients(result.delish.ingredients);
+        document.getElementById('aiDelishSteps').innerHTML = result.delish.steps.map(s => `<li>${s}</li>`).join('');
+
+        // Setup Search Redirect for Delish title
+        document.getElementById('aiDelishSearchBtn').onclick = () => {
+          const searchUrl = `https://delishkitchen.tv/search?q=${encodeURIComponent(result.delish.title)}`;
+          window.open(searchUrl, '_blank', 'noopener,noreferrer');
+        };
+
+        // Switch State to Result
+        aiProposeLoading.style.display = 'none';
+        aiProposeResult.style.display = 'flex';
+
+      } catch (err) {
+        console.error("AI proposal failed", err);
+        const errMsg = err.message || err;
+        showToast(`AI提案に失敗しました: ${errMsg}`, 'fa-circle-exclamation');
+        aiProposeModal.classList.remove('open');
+      }
     }
 
     // --- Settings Modal Logic ---
