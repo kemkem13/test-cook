@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ぽちっと冷蔵庫レシピver1.1.1 | レシピ検索ツール</title>
+  <title>ぽちっと冷蔵庫レシピver1.1.2 | レシピ検索ツール</title>
   <meta name="description" content="冷蔵庫の余り物食材をぽちぽち選ぶだけで、ワンクリックでクラシルの美味しいレシピを検索できる超軽量・爆速Webツール。">
   
   <!-- Google Fonts & Font Awesome Icons -->
@@ -1357,7 +1357,7 @@
           <i class="fa-solid fa-utensils"></i>
         </div>
         <div>
-          <h1 class="app-title">ぽちっと冷蔵庫レシピver1.1.1</h1>
+          <h1 class="app-title">ぽちっと冷蔵庫レシピver1.1.2</h1>
           <div class="app-subtitle">クラシル・デリッシュキッチン簡単連携レシピファインダー</div>
         </div>
       </div>
@@ -2176,7 +2176,7 @@
   }
 }`;
 
-      const requestUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+      const requestUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
       const payload = {
         contents: [
           {
