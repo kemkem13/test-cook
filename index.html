@@ -2189,36 +2189,36 @@
         generationConfig: {
           responseMimeType: "application/json",
           responseSchema: {
-            type: "OBJECT",
+            type: "object",
             properties: {
               kurashiru: {
-                type: "OBJECT",
+                type: "object",
                 properties: {
-                  title: { type: "STRING" },
-                  description: { type: "STRING" },
+                  title: { type: "string" },
+                  description: { type: "string" },
                   ingredients: {
-                    type: "ARRAY",
-                    items: { type: "STRING" }
+                    type: "array",
+                    items: { type: "string" }
                   },
                   steps: {
-                    type: "ARRAY",
-                    items: { type: "STRING" }
+                    type: "array",
+                    items: { type: "string" }
                   }
                 },
                 required: ["title", "description", "ingredients", "steps"]
               },
               delish: {
-                type: "OBJECT",
+                type: "object",
                 properties: {
-                  title: { type: "STRING" },
-                  description: { type: "STRING" },
+                  title: { type: "string" },
+                  description: { type: "string" },
                   ingredients: {
-                    type: "ARRAY",
-                    items: { type: "STRING" }
+                    type: "array",
+                    items: { type: "string" }
                   },
                   steps: {
-                    type: "ARRAY",
-                    items: { type: "STRING" }
+                    type: "array",
+                    items: { type: "string" }
                   }
                 },
                 required: ["title", "description", "ingredients", "steps"]

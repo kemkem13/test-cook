@@ -1556,12 +1556,12 @@ ${allPresetNames.join(', ')}
         generationConfig: {
           responseMimeType: "application/json",
           responseSchema: {
-            type: "OBJECT",
+            type: "object",
             properties: {
-              title: { type: "STRING" },
+              title: { type: "string" },
               ingredients: {
-                type: "ARRAY",
-                items: { type: "STRING" }
+                type: "array",
+                items: { type: "string" }
               }
             },
             required: ["title", "ingredients"]
