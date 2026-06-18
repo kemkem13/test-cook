@@ -1156,10 +1156,9 @@
       syncGroupCodeVal = localStorage.getItem('sync_group_code') || '';
       const configStr = localStorage.getItem('firebase_config') || '';
       if (configStr) {
-        try {
-          firebaseConfig = JSON.parse(configStr);
-        } catch (e) {
-          console.error("Error parsing firebase config", e);
+        firebaseConfig = parseFirebaseConfig(configStr);
+        if (!firebaseConfig) {
+          console.error("Error parsing firebase config from localStorage");
         }
       }
 
@@ -1213,6 +1212,28 @@
       }
     }
 
+    function parseFirebaseConfig(str) {
+      str = str.trim();
+      const braceStart = str.indexOf('{');
+      const braceEnd = str.lastIndexOf('}');
+      if (braceStart !== -1 && braceEnd !== -1 && braceEnd > braceStart) {
+        str = str.substring(braceStart, braceEnd + 1);
+      }
+      try {
+        return JSON.parse(str);
+      } catch (e) {
+        try {
+          const obj = new Function(`return ${str}`)();
+          if (obj && typeof obj === 'object') {
+            return obj;
+          }
+        } catch (err) {
+          console.error("Config parsing fallback failed", err);
+        }
+      }
+      return null;
+    }
+
     function saveSyncSettings() {
       const enabled = syncEnabledToggle.checked;
       const code = syncGroupCode.value.trim();
@@ -1227,16 +1248,16 @@
           showToast('Firebase構成JSONを入力してください', 'fa-circle-exclamation');
           return;
         }
-        try {
-          JSON.parse(configStr);
-        } catch (e) {
-          showToast('Firebase構成JSONが正しくありません', 'fa-circle-exclamation');
+        
+        const parsedConfig = parseFirebaseConfig(configStr);
+        if (!parsedConfig) {
+          showToast('Firebase構成が正しくありません。中括弧 { } の部分をコピーしてください。', 'fa-circle-exclamation');
           return;
         }
 
         localStorage.setItem('sync_enabled', 'true');
         localStorage.setItem('sync_group_code', code);
-        localStorage.setItem('firebase_config', configStr);
+        localStorage.setItem('firebase_config', JSON.stringify(parsedConfig));
         showToast('同期設定を保存しました。再読み込みします。', 'fa-circle-check');
       } else {
         localStorage.setItem('sync_enabled', 'false');
