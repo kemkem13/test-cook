@@ -1,0 +1,1549 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>買い物メモ | ぽちっと冷蔵庫レシピver1.2</title>
+  <meta name="description" content="冷蔵庫の定番食材や手入力した買い物アイテムをスマートに管理・共有できる買い物メモツール。">
+  
+  <!-- Google Fonts & Font Awesome Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    /* ==========================================================================
+       Design System & Variables
+       ========================================================================== */
+    :root {
+      /* Color Tokens (Light Mode Default) */
+      --bg-gradient: linear-gradient(135deg, #fff5f2 0%, #fffbf0 100%);
+      --body-bg: #fbf9f6;
+      --card-bg: rgba(255, 255, 255, 0.85);
+      --card-border: rgba(255, 255, 255, 0.6);
+      --text-primary: #2d3748;
+      --text-secondary: #718096;
+      
+      --primary-color: #ff5a36;
+      --primary-gradient: linear-gradient(135deg, #ff5a36 0%, #ff8c42 100%);
+      --primary-hover-gradient: linear-gradient(135deg, #e04e2e 0%, #e6762e 100%);
+      --primary-glow: rgba(255, 90, 54, 0.3);
+      
+      --accent-color: #ff8c42;
+      --badge-bg: rgba(255, 90, 54, 0.08);
+      --badge-text: #ff5a36;
+      --badge-border: rgba(255, 90, 54, 0.15);
+      
+      --btn-inactive-bg: #ffffff;
+      --btn-inactive-border: #e2e8f0;
+      --btn-inactive-text: #4a5568;
+      --btn-inactive-hover-bg: #f7fafc;
+      
+      --category-bg-meat: #ffebeb;
+      --category-text-meat: #e53e3e;
+      --category-bg-veg: #ebfcf2;
+      --category-text-veg: #2f855a;
+      --category-bg-mushroom: #fdf2e9;
+      --category-text-mushroom: #a0522d;
+      --category-bg-other: #ebf8ff;
+      --category-text-other: #2b6cb0;
+      
+      --shadow: 0 10px 30px -5px rgba(255, 90, 54, 0.05), 0 4px 12px -2px rgba(0, 0, 0, 0.03);
+      --shadow-lg: 0 20px 40px -15px rgba(0, 0, 0, 0.1);
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      
+      --modal-bg: rgba(0, 0, 0, 0.4);
+    }
+
+    [data-theme="dark"] {
+      /* Color Tokens (Dark Mode) */
+      --bg-gradient: linear-gradient(135deg, #111827 0%, #1f2937 100%);
+      --body-bg: #0b0f19;
+      --card-bg: rgba(30, 41, 59, 0.75);
+      --card-border: rgba(255, 255, 255, 0.06);
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      
+      --primary-color: #ff6e4a;
+      --primary-gradient: linear-gradient(135deg, #ff6e4a 0%, #ffa066 100%);
+      --primary-hover-gradient: linear-gradient(135deg, #e05e3b 0%, #e68d55 100%);
+      --primary-glow: rgba(255, 110, 74, 0.4);
+      
+      --accent-color: #ffa066;
+      --badge-bg: rgba(255, 110, 74, 0.15);
+      --badge-text: #ffa066;
+      --badge-border: rgba(255, 110, 74, 0.3);
+      
+      --btn-inactive-bg: rgba(51, 65, 85, 0.4);
+      --btn-inactive-border: rgba(255, 255, 255, 0.05);
+      --btn-inactive-text: #cbd5e1;
+      --btn-inactive-hover-bg: rgba(51, 65, 85, 0.7);
+      
+      --category-bg-meat: rgba(229, 62, 62, 0.15);
+      --category-text-meat: #fc8181;
+      --category-bg-veg: rgba(47, 133, 90, 0.15);
+      --category-text-veg: #68d391;
+      --category-bg-mushroom: rgba(160, 82, 45, 0.2);
+      --category-text-mushroom: #f0a98c;
+      --category-bg-other: rgba(43, 108, 176, 0.15);
+      --category-text-other: #63b3ed;
+      
+      --shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.3), 0 4px 12px -2px rgba(0, 0, 0, 0.2);
+      --shadow-lg: 0 20px 40px -10px rgba(0, 0, 0, 0.4);
+      
+      --modal-bg: rgba(0, 0, 0, 0.6);
+    }
+
+    /* ==========================================================================
+       Global resets & base styles
+       ========================================================================== */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: 'Noto Sans JP', 'Outfit', sans-serif;
+      background: var(--body-bg);
+      background-image: var(--bg-gradient);
+      background-attachment: fixed;
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      line-height: 1.6;
+      transition: background-color 0.4s ease, color 0.4s ease, background-image 0.4s ease;
+      padding-bottom: 110px; /* Space for bottom-nav */
+    }
+
+    /* Scrollbar Styling */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--btn-inactive-border);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--text-secondary);
+    }
+
+    /* ==========================================================================
+       Layout container
+       ========================================================================== */
+    .container {
+      width: 100%;
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 24px 16px;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* 2 Column Layout styles */
+    .app-layout {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .main-left-column {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      width: 100%;
+    }
+
+    .main-right-column {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    @media (min-width: 768px) {
+      .app-layout {
+        flex-direction: row;
+        align-items: flex-start;
+      }
+      .main-left-column {
+        flex: 1.2;
+        min-width: 0;
+      }
+      .main-right-column {
+        flex: 1;
+        position: sticky;
+        top: 24px;
+      }
+    }
+
+    /* ==========================================================================
+       Header Components
+       ========================================================================== */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      margin-bottom: 8px;
+    }
+
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .logo-icon {
+      background: var(--primary-gradient);
+      color: #ffffff;
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 4px 12px var(--primary-glow);
+    }
+
+    .app-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .app-subtitle {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+      margin-top: -2px;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .theme-toggle-btn {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text-primary);
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      box-shadow: var(--shadow);
+      transition: var(--transition);
+      text-decoration: none;
+    }
+
+    .theme-toggle-btn:hover {
+      transform: scale(1.03);
+      background: var(--btn-inactive-hover-bg);
+    }
+
+    .theme-toggle-btn:active {
+      transform: scale(0.97);
+    }
+
+    /* ==========================================================================
+       Glass Card & Form Styles
+       ========================================================================== */
+    .glass-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(16px) saturate(180%);
+      -webkit-backdrop-filter: blur(16px) saturate(180%);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: var(--shadow);
+      transition: var(--transition);
+    }
+
+    .section-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section-title i {
+      color: var(--primary-color);
+    }
+
+    .desc-text {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      margin-bottom: 14px;
+      margin-top: -6px;
+    }
+
+    .add-form {
+      display: flex;
+      gap: 8px;
+    }
+
+    .input-wrapper {
+      position: relative;
+      flex-grow: 1;
+    }
+
+    .input-wrapper i {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      pointer-events: none;
+      transition: var(--transition);
+    }
+
+    .custom-input {
+      width: 100%;
+      padding: 12px 12px 12px 38px;
+      border-radius: 12px;
+      border: 1px solid var(--btn-inactive-border);
+      background: var(--btn-inactive-bg);
+      color: var(--text-primary);
+      font-size: 0.9rem;
+      outline: none;
+      transition: var(--transition);
+    }
+
+    .custom-input:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(255, 90, 54, 0.15);
+      background: var(--card-bg);
+    }
+
+    .custom-input:focus + i {
+      color: var(--primary-color);
+    }
+
+    .add-btn {
+      background: var(--btn-inactive-bg);
+      border: 1px solid var(--btn-inactive-border);
+      color: var(--text-primary);
+      padding: 0 18px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: var(--transition);
+    }
+
+    .add-btn:hover {
+      background: var(--primary-gradient);
+      color: #ffffff;
+      border-color: transparent;
+      box-shadow: 0 4px 12px var(--primary-glow);
+    }
+
+    .add-btn:active {
+      transform: scale(0.96);
+    }
+
+    /* ==========================================================================
+       Presets Section Layout
+       ========================================================================== */
+    .presets-container {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .category-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .category-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      width: fit-content;
+      padding: 3px 10px;
+      border-radius: 8px;
+    }
+
+    .category-meat .category-title {
+      background: var(--category-bg-meat);
+      color: var(--category-text-meat);
+    }
+    
+    .category-veg .category-title {
+      background: var(--category-bg-veg);
+      color: var(--category-text-veg);
+    }
+
+    .category-mushroom .category-title {
+      background: var(--category-bg-mushroom);
+      color: var(--category-text-mushroom);
+    }
+
+    .category-other .category-title {
+      background: var(--category-bg-other);
+      color: var(--category-text-other);
+    }
+
+    .presets-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+      gap: 6px;
+    }
+
+    .preset-btn {
+      background: var(--btn-inactive-bg);
+      border: 1px solid var(--btn-inactive-border);
+      color: var(--btn-inactive-text);
+      padding: 8px 6px;
+      border-radius: 10px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      transition: var(--transition);
+      user-select: none;
+      min-height: 48px;
+    }
+
+    .preset-btn:hover {
+      background: var(--btn-inactive-hover-bg);
+      border-color: var(--text-secondary);
+    }
+
+    .preset-emoji {
+      font-size: 1.05rem;
+    }
+
+    .preset-btn.active {
+      background: var(--primary-gradient);
+      color: #ffffff;
+      border-color: transparent;
+      box-shadow: 0 4px 10px var(--primary-glow);
+    }
+
+    /* Small Screen Adjustments */
+    @media (max-width: 480px) {
+      .presets-grid {
+        grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+      }
+      .preset-btn {
+        padding: 6px 2px;
+        font-size: 0.72rem;
+        min-height: 44px;
+      }
+      .preset-emoji {
+        font-size: 0.95rem;
+      }
+    }
+
+    /* ==========================================================================
+       Shopping List Layout
+       ========================================================================== */
+    .shopping-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .shopping-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .action-icon-btn {
+      background: var(--btn-inactive-bg);
+      border: 1px solid var(--btn-inactive-border);
+      color: var(--text-primary);
+      padding: 8px 12px;
+      border-radius: 10px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: var(--transition);
+    }
+
+    .action-icon-btn:hover {
+      border-color: var(--primary-color);
+      background: var(--btn-inactive-hover-bg);
+    }
+
+    .action-icon-btn.reset:hover {
+      background: #ffebeb;
+      color: #e53e3e;
+      border-color: rgba(229, 62, 62, 0.2);
+    }
+
+    [data-theme="dark"] .action-icon-btn.reset:hover {
+      background: rgba(229, 62, 62, 0.2);
+      color: #fc8181;
+    }
+
+    .shopping-list-items {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 14px;
+      max-height: 350px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .shopping-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--btn-inactive-bg);
+      border: 1px solid var(--btn-inactive-border);
+      padding: 10px 14px;
+      border-radius: 12px;
+      transition: var(--transition);
+      animation: popIn 0.25s ease;
+    }
+
+    .shopping-item:hover {
+      border-color: var(--primary-color);
+    }
+
+    .checkbox-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.92rem;
+      font-weight: 500;
+      cursor: pointer;
+      user-select: none;
+      flex-grow: 1;
+    }
+
+    /* Custom Checkbox Implementation */
+    .checkbox-container input {
+      position: absolute;
+      opacity: 0;
+      cursor: pointer;
+      height: 0;
+      width: 0;
+    }
+
+    .checkmark {
+      height: 20px;
+      width: 20px;
+      background-color: var(--btn-inactive-bg);
+      border: 2px solid var(--btn-inactive-border);
+      border-radius: 6px;
+      display: inline-block;
+      position: relative;
+      transition: var(--transition);
+    }
+
+    .checkbox-container:hover input ~ .checkmark {
+      border-color: var(--primary-color);
+    }
+
+    .checkbox-container input:checked ~ .checkmark {
+      background: var(--primary-gradient);
+      border-color: transparent;
+    }
+
+    .checkmark:after {
+      content: "";
+      position: absolute;
+      display: none;
+      left: 6px;
+      top: 2px;
+      width: 5px;
+      height: 10px;
+      border: solid white;
+      border-width: 0 2px 2px 0;
+      transform: rotate(45deg);
+    }
+
+    .checkbox-container input:checked ~ .checkmark:after {
+      display: block;
+    }
+
+    .item-text {
+      transition: var(--transition);
+    }
+
+    .checkbox-container input:checked ~ .item-text {
+      text-decoration: line-through;
+      color: var(--text-secondary);
+      opacity: 0.65;
+    }
+
+    .delete-item-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      cursor: pointer;
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      transition: var(--transition);
+    }
+
+    .delete-item-btn:hover {
+      background: #ffebeb;
+      color: #e53e3e;
+    }
+
+    [data-theme="dark"] .delete-item-btn:hover {
+      background: rgba(229, 62, 62, 0.2);
+      color: #fc8181;
+    }
+
+    .shopping-empty {
+      text-align: center;
+      padding: 30px 10px;
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      font-style: italic;
+    }
+
+    /* ==========================================================================
+       Bottom Navigation Bar Styles
+       ========================================================================== */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 70px;
+      background: var(--card-bg);
+      border-top: 1px solid var(--card-border);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      z-index: 1000;
+      box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.08);
+      backdrop-filter: blur(16px) saturate(180%);
+      -webkit-backdrop-filter: blur(16px) saturate(180%);
+      padding-bottom: env(safe-area-inset-bottom);
+      transition: background-color 0.4s ease, border-color 0.4s ease;
+    }
+    
+    .bottom-nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 0.72rem;
+      font-weight: 700;
+      flex: 1;
+      height: 100%;
+      transition: color 0.2s ease, transform 0.1s ease;
+      cursor: pointer;
+    }
+    
+    .bottom-nav-item i {
+      font-size: 1.25rem;
+    }
+    
+    .bottom-nav-item:hover, .bottom-nav-item.active {
+      color: var(--primary-color);
+    }
+    
+    .bottom-nav-item:active {
+      transform: scale(0.95);
+    }
+
+    /* ==========================================================================
+       Modals & Toast
+       ========================================================================== */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: var(--modal-bg);
+      backdrop-filter: blur(4px);
+      z-index: 2000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .modal-overlay.open {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .modal-content {
+      background: var(--card-bg);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--card-border);
+      border-radius: 24px;
+      padding: 24px;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: var(--shadow-lg);
+      transform: scale(0.9);
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      text-align: center;
+    }
+
+    .modal-overlay.open .modal-content {
+      transform: scale(1);
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-top: 20px;
+    }
+
+    .modal-btn {
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: var(--transition);
+      border: none;
+    }
+
+    .modal-btn.cancel {
+      background: transparent;
+      border: 1px solid var(--btn-inactive-border);
+      color: var(--text-primary);
+    }
+
+    .modal-btn.confirm {
+      background: var(--primary-gradient);
+      color: #ffffff;
+      box-shadow: 0 4px 12px var(--primary-glow);
+    }
+
+    .toast {
+      position: fixed;
+      top: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-20px);
+      background: #2d3748;
+      color: #ffffff;
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      opacity: 0;
+      visibility: hidden;
+      box-shadow: var(--shadow-lg);
+      transition: all 0.3s ease;
+      z-index: 3000;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .toast.show {
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    @keyframes popIn {
+      0% { transform: scale(0.85); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    /* Password Gate Styles */
+    .auth-gate {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: var(--body-bg);
+      background-image: var(--bg-gradient);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      transition: opacity 0.4s ease, visibility 0.4s ease;
+    }
+    
+    .auth-box {
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      padding: 30px 24px;
+      animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .auth-logo {
+      width: 60px;
+      height: 60px;
+      background: var(--primary-gradient);
+      color: #ffffff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      margin: 0 auto 8px;
+      box-shadow: 0 4px 14px var(--primary-glow);
+    }
+
+    .auth-desc {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      margin-top: -6px;
+    }
+
+    .auth-submit-btn {
+      width: 100%;
+      padding: 12px;
+      justify-content: center;
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin-top: 6px;
+      border-radius: 12px;
+    }
+
+    .auth-error-msg {
+      color: #e53e3e;
+      font-size: 0.8rem;
+      font-weight: 500;
+      min-height: 20px;
+    }
+    
+    .app-content-wrapper {
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease;
+    }
+
+    .app-content-wrapper.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Password Gate Overlay -->
+  <div id="authGate" class="auth-gate">
+    <div class="auth-box glass-card">
+      <div class="auth-logo">
+        <i class="fa-solid fa-lock"></i>
+      </div>
+      <h2>アクセス制限</h2>
+      <p class="auth-desc">このアプリを利用するにはパスワードを入力してください。</p>
+      <form id="authForm" onsubmit="event.preventDefault();">
+        <div class="input-wrapper">
+          <input type="password" id="authPassword" class="custom-input" placeholder="パスワードを入力" required autocomplete="current-password" style="padding-left: 38px;">
+          <i class="fa-solid fa-key" style="left: 14px; top: 50%; transform: translateY(-50%);"></i>
+        </div>
+        <button type="submit" id="authSubmitBtn" class="add-btn auth-submit-btn">
+          認証する <i class="fa-solid fa-arrow-right-to-bracket"></i>
+        </button>
+      </form>
+      <div id="authError" class="auth-error-msg"></div>
+    </div>
+  </div>
+
+  <div id="appContentWrapper" class="app-content-wrapper">
+    <div class="container">
+      <!-- Header -->
+      <header>
+        <a href="index.html" class="logo-container">
+          <div class="logo-icon" aria-hidden="true">
+            <i class="fa-solid fa-utensils"></i>
+          </div>
+          <div>
+            <h1 class="app-title">ぽちっと冷蔵庫レシピver1.2</h1>
+            <div class="app-subtitle">買い物メモ</div>
+          </div>
+        </a>
+        <div class="header-actions">
+          <button id="themeToggleBtn" class="theme-toggle-btn" aria-label="テーマ切り替え">
+            <i class="fa-solid fa-moon"></i>
+          </button>
+        </div>
+      </header>
+
+      <div class="app-layout">
+        <!-- Left Column: Preset Ingredient Selector -->
+        <div class="main-left-column">
+          <section class="glass-card presets-container">
+            <h2 class="section-title">
+              <i class="fa-solid fa-layer-group"></i>
+              定番食材をタップで追加
+            </h2>
+            <p class="desc-text" style="margin-top: -8px;">タップするだけで買い物リストに追加・削除できます。</p>
+
+            <!-- Meat & Fish Category -->
+            <div class="category-group category-meat">
+              <div class="category-title"><i class="fa-solid fa-meat"></i> 肉・魚</div>
+              <div class="presets-grid" id="meatGrid"></div>
+            </div>
+
+            <!-- Veg Category -->
+            <div class="category-group category-veg">
+              <div class="category-title"><i class="fa-solid fa-carrot"></i> 野菜</div>
+              <div class="presets-grid" id="vegGrid"></div>
+            </div>
+
+            <!-- Mushroom Category -->
+            <div class="category-group category-mushroom">
+              <div class="category-title"><i class="fa-solid fa-leaf"></i> キノコ</div>
+              <div class="presets-grid" id="mushroomGrid"></div>
+            </div>
+
+            <!-- Others Category -->
+            <div class="category-group category-other">
+              <div class="category-title"><i class="fa-solid fa-egg"></i> その他</div>
+              <div class="presets-grid" id="otherGrid"></div>
+            </div>
+          </section>
+        </div>
+
+        <!-- Right Column: Shopping List -->
+        <div class="main-right-column">
+          <!-- Text entry card -->
+          <section class="glass-card">
+            <h2 class="section-title">
+              <i class="fa-solid fa-plus-circle"></i>
+              手入力で追加
+            </h2>
+            <form id="addForm" class="add-form" onsubmit="event.preventDefault();">
+              <div class="input-wrapper">
+                <input 
+                  type="text" 
+                  id="customInput" 
+                  class="custom-input" 
+                  placeholder="調味料、日用品など..." 
+                  maxlength="20"
+                  autocomplete="off"
+                  aria-label="買い物アイテム名"
+                >
+                <i class="fa-solid fa-clipboard-list"></i>
+              </div>
+              <button type="submit" id="addBtn" class="add-btn">
+                <i class="fa-solid fa-plus"></i> 追加
+              </button>
+            </form>
+          </section>
+
+          <!-- Checklist card -->
+          <section class="glass-card">
+            <div class="shopping-header">
+              <h2 class="section-title" style="margin-bottom: 0;">
+                <i class="fa-solid fa-clipboard-check"></i>
+                買い物リスト <span id="itemCounter" class="badge-text" style="font-size: 0.8rem; background: var(--badge-bg); color: var(--badge-text); padding: 2px 8px; border-radius: 12px; margin-left: 6px; font-family: 'Outfit';">0</span>
+              </h2>
+              <div class="shopping-actions">
+                <button type="button" id="shareBtn" class="action-icon-btn" title="買い物メモを共有">
+                  <i class="fa-solid fa-share-nodes"></i> 共有
+                </button>
+                <button type="button" id="resetBtn" class="action-icon-btn reset" title="リストをリセット">
+                  <i class="fa-solid fa-trash-can"></i> クリア
+                </button>
+              </div>
+            </div>
+
+            <div id="shoppingListContainer" class="shopping-list-items">
+              <!-- Rendered shopping items -->
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reset Confirmation Modal -->
+  <div id="resetModal" class="modal-overlay" role="dialog" aria-modal="true">
+    <div class="modal-content glass-card">
+      <h3 style="margin-bottom: 12px;"><i class="fa-solid fa-triangle-exclamation" style="color: #ff8c42;"></i> 買い物メモのリセット</h3>
+      <p class="desc-text" style="text-align: center; margin-top: 10px;">買い物メモをすべて消去しますか？<br>この操作は取り消せません。</p>
+      <div class="modal-buttons">
+        <button type="button" id="cancelResetBtn" class="modal-btn cancel">キャンセル</button>
+        <button type="button" id="confirmResetBtn" class="modal-btn confirm">クリアする</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Navigation Bar -->
+  <nav class="bottom-nav">
+    <a href="index.html" class="bottom-nav-item">
+      <i class="fa-solid fa-basket-shopping"></i>
+      <span>食材えらぶ</span>
+    </a>
+    <a href="saved_recipes.html" class="bottom-nav-item">
+      <i class="fa-solid fa-bookmark"></i>
+      <span>保存レシピ</span>
+    </a>
+    <a href="shopping_memo.html" class="bottom-nav-item active">
+      <i class="fa-solid fa-clipboard-list"></i>
+      <span>買い物メモ</span>
+    </a>
+  </nav>
+
+  <!-- Toast Element -->
+  <div id="toast" class="toast" role="alert" aria-live="assertive"></div>
+
+  <!-- ==========================================================================
+       Application Logic
+       ========================================================================== */
+  <script>
+    // --- Data Definitions ---
+    const presets = {
+      meat: [
+        { name: "牛肉", emoji: "🥩" },
+        { name: "豚肉", emoji: "🍖" },
+        { name: "鶏肉", emoji: "🍗" },
+        { name: "ひき肉", emoji: "🥓" },
+        { name: "鮭", emoji: "🐟" },
+        { name: "サバ", emoji: "🐟" },
+        { name: "タラ", emoji: "🐟" },
+        { name: "ブリ", emoji: "🐟" },
+        { name: "しらす", emoji: "🐟" },
+        { name: "ソーセージ", emoji: "🌭" }
+      ],
+      veg: [
+        { name: "玉ねぎ", emoji: "🧅" },
+        { name: "にんじん", emoji: "🥕" },
+        { name: "キャベツ", emoji: "🥬" },
+        { name: "レタス", emoji: "🥬" },
+        { name: "ナス", emoji: "🍆" },
+        { name: "じゃがいも", emoji: "🥔" },
+        { name: "アスパラガス", emoji: "🌱" },
+        { name: "ブロッコリー", emoji: "🥦" },
+        { name: "ほうれん草", emoji: "🥬" },
+        { name: "小松菜", emoji: "🥬" },
+        { name: "豆苗", emoji: "🌱" },
+        { name: "アボカド", emoji: "🥑" },
+        { name: "大根", emoji: "🥗" },
+        { name: "白菜", emoji: "🥬" },
+        { name: "ピーマン", emoji: "🫑" },
+        { name: "ねぎ", emoji: "🌱" },
+        { name: "トマト", emoji: "🍅" },
+        { name: "さといも", emoji: "🥔" },
+        { name: "長芋", emoji: "🥔" },
+        { name: "れんこん", emoji: "🥔" }
+      ],
+      mushroom: [
+        { name: "えのき", emoji: "🍄" },
+        { name: "しめじ", emoji: "🍄" },
+        { name: "しいたけ", emoji: "🍄" },
+        { name: "エリンギ", emoji: "🍄" },
+        { name: "舞茸", emoji: "🍄" }
+      ],
+      other: [
+        { name: "卵", emoji: "🥚" },
+        { name: "納豆", emoji: "🥣" },
+        { name: "キムチ", emoji: "🌶️" },
+        { name: "豆腐", emoji: "⬜" },
+        { name: "チーズ", emoji: "🧀" },
+        { name: "うどん", emoji: "🍜" },
+        { name: "パスタ", emoji: "🍝" },
+        { name: "そうめん", emoji: "🍜" }
+      ]
+    };
+
+    // --- State Management ---
+    // shoppingMemo stores array of item objects: { id, name, checked, isPreset }
+    let shoppingMemo = [];
+
+    // --- DOM Elements ---
+    const meatGrid = document.getElementById('meatGrid');
+    const vegGrid = document.getElementById('vegGrid');
+    const mushroomGrid = document.getElementById('mushroomGrid');
+    const otherGrid = document.getElementById('otherGrid');
+    const customInput = document.getElementById('customInput');
+    const addForm = document.getElementById('addForm');
+    const shoppingListContainer = document.getElementById('shoppingListContainer');
+    const itemCounter = document.getElementById('itemCounter');
+    
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+    const toast = document.getElementById('toast');
+    const shareBtn = document.getElementById('shareBtn');
+    
+    // Reset Modal
+    const resetBtn = document.getElementById('resetBtn');
+    const resetModal = document.getElementById('resetModal');
+    const cancelResetBtn = document.getElementById('cancelResetBtn');
+    const confirmResetBtn = document.getElementById('confirmResetBtn');
+
+    // --- LocalStorage & Authentication ---
+    function initLocalStorage() {
+      // Load Theme Settings
+      const savedTheme = localStorage.getItem('theme');
+      if (savedTheme) {
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        updateThemeIcon(savedTheme);
+      } else {
+        const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const defaultTheme = systemPrefersDark ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', defaultTheme);
+        updateThemeIcon(defaultTheme);
+      }
+
+      // Load Shopping Memo List
+      const savedMemo = localStorage.getItem('shoppingMemo');
+      if (savedMemo) {
+        try {
+          shoppingMemo = JSON.parse(savedMemo);
+        } catch(e) {
+          console.error("Error loading shopping memo", e);
+        }
+      }
+    }
+
+    function saveShoppingMemo() {
+      localStorage.setItem('shoppingMemo', JSON.stringify(shoppingMemo));
+    }
+
+    // --- Theme Switcher Logic ---
+    function toggleTheme() {
+      const currentTheme = document.documentElement.getAttribute('data-theme');
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', newTheme);
+      localStorage.setItem('theme', newTheme);
+      updateThemeIcon(newTheme);
+      showToast(newTheme === 'dark' ? 'ダークモードに切り替えました' : 'ライトモードに切り替えました', 'fa-circle-half-stroke');
+    }
+
+    function updateThemeIcon(theme) {
+      const icon = themeToggleBtn.querySelector('i');
+      if (theme === 'dark') {
+        icon.className = 'fa-solid fa-sun';
+      } else {
+        icon.className = 'fa-solid fa-moon';
+      }
+    }
+
+    // --- Toast Notification ---
+    let toastTimeout;
+    function showToast(message, iconClass = 'fa-info-circle') {
+      clearTimeout(toastTimeout);
+      toast.innerHTML = `<i class="fa-solid ${iconClass}"></i><span>${message}</span>`;
+      toast.classList.add('show');
+      toastTimeout = setTimeout(() => {
+        toast.classList.remove('show');
+      }, 2000);
+    }
+
+    // --- UI Renderers ---
+    function renderPresets() {
+      const renderGrid = (grid, list) => {
+        grid.innerHTML = '';
+        list.forEach(item => {
+          const button = document.createElement('button');
+          button.className = 'preset-btn';
+          button.setAttribute('data-name', item.name);
+          button.setAttribute('aria-pressed', 'false');
+          button.innerHTML = `
+            <span class="preset-emoji" aria-hidden="true">${item.emoji}</span>
+            <span>${item.name}</span>
+          `;
+          button.addEventListener('click', () => togglePresetIngredient(item.name));
+          grid.appendChild(button);
+        });
+      };
+
+      renderGrid(meatGrid, presets.meat);
+      renderGrid(vegGrid, presets.veg);
+      renderGrid(mushroomGrid, presets.mushroom);
+      renderGrid(otherGrid, presets.other);
+    }
+
+    // Sync button active states in presets grids with shoppingMemo
+    function syncPresetButtonStates() {
+      const presetNamesInMemo = new Set(
+        shoppingMemo.filter(item => item.isPreset).map(item => item.name)
+      );
+
+      document.querySelectorAll('.preset-btn').forEach(btn => {
+        const name = btn.getAttribute('data-name');
+        const isActive = presetNamesInMemo.has(name);
+        if (isActive) {
+          btn.classList.add('active');
+          btn.setAttribute('aria-pressed', 'true');
+        } else {
+          btn.classList.remove('active');
+          btn.setAttribute('aria-pressed', 'false');
+        }
+      });
+    }
+
+    // Render the shopping checklist
+    function renderShoppingList() {
+      shoppingListContainer.innerHTML = '';
+      
+      if (shoppingMemo.length === 0) {
+        shoppingListContainer.innerHTML = `
+          <div class="shopping-empty">
+            <i class="fa-solid fa-clipboard-list" style="font-size: 1.5rem; display: block; margin-bottom: 8px; opacity: 0.5;"></i>
+            買い物リストは空です。
+          </div>
+        `;
+        itemCounter.textContent = '0';
+        return;
+      }
+
+      itemCounter.textContent = shoppingMemo.length;
+
+      shoppingMemo.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'shopping-item';
+        div.setAttribute('data-id', item.id);
+
+        div.innerHTML = `
+          <label class="checkbox-container">
+            <input type="checkbox" ${item.checked ? 'checked' : ''}>
+            <span class="checkmark"></span>
+            <span class="item-text">${item.name}</span>
+          </label>
+          <button class="delete-item-btn" aria-label="${item.name}を削除" title="削除">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        `;
+
+        // Checkbox Toggle Listener
+        div.querySelector('input').addEventListener('change', (e) => {
+          toggleItemCheck(item.id, e.target.checked);
+        });
+
+        // Delete Button Listener
+        div.querySelector('.delete-item-btn').addEventListener('click', () => {
+          deleteShoppingItem(item.id);
+        });
+
+        shoppingListContainer.appendChild(div);
+      });
+    }
+
+    // --- State Handlers ---
+
+    // Toggle a preset ingredient (adds to memo or deletes it)
+    function togglePresetIngredient(name) {
+      const index = shoppingMemo.findIndex(item => item.name === name && item.isPreset);
+      if (index === -1) {
+        // Add
+        const newItem = {
+          id: 'shop_' + Date.now() + Math.random().toString(36).substr(2, 4),
+          name: name,
+          checked: false,
+          isPreset: true
+        };
+        shoppingMemo.push(newItem);
+        showToast(`「${name}」を追加しました`, 'fa-circle-check');
+      } else {
+        // Remove
+        const deletedItem = shoppingMemo[index].name;
+        shoppingMemo.splice(index, 1);
+        showToast(`「${deletedItem}」を削除しました`, 'fa-trash-can');
+      }
+      updateUI();
+    }
+
+    // Add manual text ingredient
+    function handleAddManualIngredient() {
+      const name = customInput.value.trim();
+      if (!name) {
+        showToast('買い物アイテム名を入力してください', 'fa-circle-exclamation');
+        return;
+      }
+
+      // Check if it matches preset name (mark it as preset if so, for sync highlights)
+      const allPresets = [];
+      for (const cat in presets) {
+        presets[cat].forEach(p => allPresets.push(p.name));
+      }
+      const isPreset = allPresets.includes(name);
+
+      // Check for duplicates
+      const isDuplicate = shoppingMemo.some(item => item.name.toLowerCase() === name.toLowerCase());
+      if (isDuplicate) {
+        showToast(`「${name}」は既にリストに存在します`, 'fa-circle-info');
+        customInput.value = '';
+        return;
+      }
+
+      const newItem = {
+        id: 'shop_' + Date.now() + Math.random().toString(36).substr(2, 4),
+        name: name,
+        checked: false,
+        isPreset: isPreset
+      };
+
+      shoppingMemo.unshift(newItem); // Add to the top of list
+      showToast(`「${name}」を追加しました`, 'fa-circle-check');
+      
+      customInput.value = '';
+      customInput.focus();
+      updateUI();
+    }
+
+    // Toggle checked status of shopping item
+    function toggleItemCheck(id, isChecked) {
+      const index = shoppingMemo.findIndex(item => item.id === id);
+      if (index !== -1) {
+        shoppingMemo[index].checked = isChecked;
+        saveShoppingMemo();
+        // Just reload checked status UI without full render to preserve checked animations nicely
+        const itemEl = document.querySelector(`.shopping-item[data-id="${id}"]`);
+        if (itemEl) {
+          const input = itemEl.querySelector('input');
+          input.checked = isChecked;
+        }
+      }
+    }
+
+    // Delete single shopping item
+    function deleteShoppingItem(id) {
+      const index = shoppingMemo.findIndex(item => item.id === id);
+      if (index !== -1) {
+        const deletedName = shoppingMemo[index].name;
+        shoppingMemo.splice(index, 1);
+        showToast(`「${deletedName}」を削除しました`, 'fa-trash-can');
+        updateUI();
+      }
+    }
+
+    // Master update UI function
+    function updateUI() {
+      saveShoppingMemo();
+      renderShoppingList();
+      syncPresetButtonStates();
+    }
+
+    // Reset Memo list completely
+    function resetMemo() {
+      shoppingMemo = [];
+      updateUI();
+      showToast('リストをリセットしました', 'fa-trash-can');
+      closeResetModal();
+    }
+
+    // Modal helpers
+    function openResetModal() {
+      if (shoppingMemo.length === 0) {
+        showToast('買い物リストは既に空です', 'fa-circle-info');
+        return;
+      }
+      resetModal.classList.add('open');
+    }
+
+    function closeResetModal() {
+      resetModal.classList.remove('open');
+    }
+
+    // Share shopping memo text
+    function shareMemo() {
+      if (shoppingMemo.length === 0) {
+        showToast('共有するアイテムがありません', 'fa-circle-info');
+        return;
+      }
+
+      // Format memo text
+      let shareText = '【買い物メモ】\n';
+      shoppingMemo.forEach(item => {
+        const checkMark = item.checked ? '■' : '□';
+        shareText += `${checkMark} ${item.name}\n`;
+      });
+      shareText += '\n#ぽちっと冷蔵庫レシピ';
+
+      if (navigator.share) {
+        navigator.share({
+          title: '買い物メモ',
+          text: shareText
+        }).then(() => {
+          showToast('共有メニューを開きました', 'fa-circle-check');
+        }).catch(err => {
+          console.warn('Share failed or cancelled', err);
+          fallbackCopyToClipboard(shareText);
+        });
+      } else {
+        fallbackCopyToClipboard(shareText);
+      }
+    }
+
+    function fallbackCopyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        showToast('クリップボードにコピーしました！LINEなどに貼り付けて共有してください', 'fa-circle-check');
+      }).catch(err => {
+        console.error('Clipboard write failed', err);
+        showToast('コピーに失敗しました。', 'fa-circle-exclamation');
+      });
+    }
+
+    // --- Password Verification Logic ---
+    const AUTH_HASH = "89ddb1ed5f7d01fb5707ba5192373df50b116db07403d6c9570c63f4c153dae1"; // kurashiru123
+
+    async function sha256(message) {
+      const msgBuffer = new TextEncoder().encode(message);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    function checkAuth() {
+      const isAuth = localStorage.getItem('app_authenticated');
+      const gate = document.getElementById('authGate');
+      const wrapper = document.getElementById('appContentWrapper');
+
+      if (isAuth === 'true') {
+        if (gate) gate.style.display = 'none';
+        if (wrapper) wrapper.classList.add('visible');
+      } else {
+        if (gate) gate.style.display = 'flex';
+        if (wrapper) wrapper.classList.remove('visible');
+      }
+    }
+
+    async function handleAuthSubmit() {
+      const passwordInput = document.getElementById('authPassword');
+      const errorMsg = document.getElementById('authError');
+      const submitBtn = document.getElementById('authSubmitBtn');
+      
+      const password = passwordInput.value;
+      if (!password) return;
+
+      submitBtn.setAttribute('disabled', 'true');
+      submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 検証中...';
+
+      try {
+        const hashed = await sha256(password);
+        if (hashed === AUTH_HASH) {
+          localStorage.setItem('app_authenticated', 'true');
+          showToast('認証に成功しました！', 'fa-circle-check');
+          
+          const gate = document.getElementById('authGate');
+          const wrapper = document.getElementById('appContentWrapper');
+          
+          gate.style.opacity = '0';
+          setTimeout(() => {
+            gate.style.display = 'none';
+            wrapper.classList.add('visible');
+          }, 400);
+
+        } else {
+          errorMsg.textContent = 'パスワードが違います。';
+          passwordInput.value = '';
+          passwordInput.focus();
+        }
+      } catch (e) {
+        console.error("Auth error", e);
+        errorMsg.textContent = 'エラーが発生しました。';
+      } finally {
+        submitBtn.removeAttribute('disabled');
+        submitBtn.innerHTML = '認証する <i class="fa-solid fa-arrow-right-to-bracket"></i>';
+      }
+    }
+
+    // --- Event Listeners Setup ---
+    function setupEventListeners() {
+      addForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        handleAddManualIngredient();
+      });
+
+      themeToggleBtn.addEventListener('click', toggleTheme);
+
+      customInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          handleAddManualIngredient();
+        }
+      });
+
+      // Reset Modal Event Listeners
+      resetBtn.addEventListener('click', openResetModal);
+      cancelResetBtn.addEventListener('click', closeResetModal);
+      confirmResetBtn.addEventListener('click', resetMemo);
+      resetModal.addEventListener('click', (e) => {
+        if (e.target === resetModal) closeResetModal();
+      });
+
+      // Share Event
+      shareBtn.addEventListener('click', shareMemo);
+
+      // Password gate listener
+      document.getElementById('authForm').addEventListener('submit', handleAuthSubmit);
+      checkAuth();
+
+      // Cross-tab theme synchronization
+      window.addEventListener('storage', (e) => {
+        if (e.key === 'theme') {
+          initLocalStorage();
+        }
+        if (e.key === 'shoppingMemo') {
+          initLocalStorage();
+          renderShoppingList();
+          syncPresetButtonStates();
+        }
+        if (e.key === 'app_authenticated') {
+          checkAuth();
+        }
+      });
+    }
+
+    // --- Initialization ---
+    document.addEventListener('DOMContentLoaded', () => {
+      initLocalStorage();
+      renderPresets();
+      updateUI();
+      setupEventListeners();
+    });
+  </script>
+</body>
+</html>
