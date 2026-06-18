@@ -48,6 +48,8 @@
       --category-text-mushroom: #a0522d;
       --category-bg-other: #ebf8ff;
       --category-text-other: #2b6cb0;
+      --category-bg-condiment: #fff0e6;
+      --category-text-condiment: #d46b08;
       
       --shadow: 0 10px 30px -5px rgba(255, 90, 54, 0.05), 0 4px 12px -2px rgba(0, 0, 0, 0.03);
       --shadow-lg: 0 20px 40px -15px rgba(0, 0, 0, 0.1);
@@ -88,6 +90,8 @@
       --category-text-mushroom: #f0a98c;
       --category-bg-other: rgba(43, 108, 176, 0.15);
       --category-text-other: #63b3ed;
+      --category-bg-condiment: rgba(212, 107, 8, 0.15);
+      --category-text-condiment: #ffd8bf;
       
       --shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.3), 0 4px 12px -2px rgba(0, 0, 0, 0.2);
       --shadow-lg: 0 20px 40px -10px rgba(0, 0, 0, 0.4);
@@ -415,6 +419,11 @@
     .category-other .category-title {
       background: var(--category-bg-other);
       color: var(--category-text-other);
+    }
+    
+    .category-condiment .category-title {
+      background: var(--category-bg-condiment);
+      color: var(--category-text-condiment);
     }
 
     .presets-grid {
@@ -855,6 +864,12 @@
               <div class="category-title"><i class="fa-solid fa-egg"></i> その他</div>
               <div class="presets-grid" id="otherGrid"></div>
             </div>
+
+            <!-- Condiment Category -->
+            <div class="category-group category-condiment">
+              <div class="category-title"><i class="fa-solid fa-pepper-hot"></i> 調味料</div>
+              <div class="presets-grid" id="condimentGrid"></div>
+            </div>
           </section>
         </div>
 
@@ -893,9 +908,6 @@
                 買い物リスト <span id="itemCounter" class="badge-text" style="font-size: 0.8rem; background: var(--badge-bg); color: var(--badge-text); padding: 2px 8px; border-radius: 12px; margin-left: 6px; font-family: 'Outfit';">0</span>
               </h2>
               <div class="shopping-actions">
-                <button type="button" id="shareBtn" class="action-icon-btn" title="買い物メモを共有">
-                  <i class="fa-solid fa-share-nodes"></i> 共有
-                </button>
                 <button type="button" id="resetBtn" class="action-icon-btn reset" title="リストをリセット">
                   <i class="fa-solid fa-trash-can"></i> クリア
                 </button>
@@ -997,6 +1009,24 @@
         { name: "うどん", emoji: "🍜" },
         { name: "パスタ", emoji: "🍝" },
         { name: "そうめん", emoji: "🍜" }
+      ],
+      condiment: [
+        { name: "醤油", emoji: "🍶" },
+        { name: "塩", emoji: "🧂" },
+        { name: "酢", emoji: "🍶" },
+        { name: "砂糖", emoji: "🧂" },
+        { name: "みそ", emoji: "🥣" },
+        { name: "料理酒", emoji: "🍶" },
+        { name: "みりん", emoji: "🍶" },
+        { name: "ケチャップ", emoji: "🥫" },
+        { name: "マヨネーズ", emoji: "🧴" },
+        { name: "ドレッシング", emoji: "🥗" },
+        { name: "サラダ油", emoji: "🍾" },
+        { name: "ごま油", emoji: "🍾" },
+        { name: "オリーブオイル", emoji: "🍾" },
+        { name: "ニンニクチューブ", emoji: "🧄" },
+        { name: "しょうがチューブ", emoji: "🫚" },
+        { name: "マスタード", emoji: "🌭" }
       ]
     };
 
@@ -1009,6 +1039,7 @@
     const vegGrid = document.getElementById('vegGrid');
     const mushroomGrid = document.getElementById('mushroomGrid');
     const otherGrid = document.getElementById('otherGrid');
+    const condimentGrid = document.getElementById('condimentGrid');
     const customInput = document.getElementById('customInput');
     const addForm = document.getElementById('addForm');
     const shoppingListContainer = document.getElementById('shoppingListContainer');
@@ -1016,7 +1047,6 @@
     
     const themeToggleBtn = document.getElementById('themeToggleBtn');
     const toast = document.getElementById('toast');
-    const shareBtn = document.getElementById('shareBtn');
     
     // Reset Modal
     const resetBtn = document.getElementById('resetBtn');
@@ -1105,6 +1135,7 @@
       renderGrid(vegGrid, presets.veg);
       renderGrid(mushroomGrid, presets.mushroom);
       renderGrid(otherGrid, presets.other);
+      renderGrid(condimentGrid, presets.condiment);
     }
 
     // Sync button active states in presets grids with shoppingMemo
@@ -1289,44 +1320,7 @@
       resetModal.classList.remove('open');
     }
 
-    // Share shopping memo text
-    function shareMemo() {
-      if (shoppingMemo.length === 0) {
-        showToast('共有するアイテムがありません', 'fa-circle-info');
-        return;
-      }
 
-      // Format memo text
-      let shareText = '【買い物メモ】\n';
-      shoppingMemo.forEach(item => {
-        const checkMark = item.checked ? '■' : '□';
-        shareText += `${checkMark} ${item.name}\n`;
-      });
-      shareText += '\n#ぽちっと冷蔵庫レシピ';
-
-      if (navigator.share) {
-        navigator.share({
-          title: '買い物メモ',
-          text: shareText
-        }).then(() => {
-          showToast('共有メニューを開きました', 'fa-circle-check');
-        }).catch(err => {
-          console.warn('Share failed or cancelled', err);
-          fallbackCopyToClipboard(shareText);
-        });
-      } else {
-        fallbackCopyToClipboard(shareText);
-      }
-    }
-
-    function fallbackCopyToClipboard(text) {
-      navigator.clipboard.writeText(text).then(() => {
-        showToast('クリップボードにコピーしました！LINEなどに貼り付けて共有してください', 'fa-circle-check');
-      }).catch(err => {
-        console.error('Clipboard write failed', err);
-        showToast('コピーに失敗しました。', 'fa-circle-exclamation');
-      });
-    }
 
 
 
@@ -1339,13 +1333,6 @@
 
       themeToggleBtn.addEventListener('click', toggleTheme);
 
-      customInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-          e.preventDefault();
-          handleAddManualIngredient();
-        }
-      });
-
       // Reset Modal Event Listeners
       resetBtn.addEventListener('click', openResetModal);
       cancelResetBtn.addEventListener('click', closeResetModal);
@@ -1353,9 +1340,6 @@
       resetModal.addEventListener('click', (e) => {
         if (e.target === resetModal) closeResetModal();
       });
-
-      // Share Event
-      shareBtn.addEventListener('click', shareMemo);
 
       // Cross-tab theme synchronization
       window.addEventListener('storage', (e) => {
