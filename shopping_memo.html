@@ -12,6 +12,10 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
+  <!-- Firebase SDK Compat -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+
   <style>
     /* ==========================================================================
        Design System & Variables
@@ -825,6 +829,9 @@
           </div>
         </a>
         <div class="header-actions">
+          <button id="settingsBtn" class="theme-toggle-btn" aria-label="設定を開く" title="設定を開く">
+            <i class="fa-solid fa-gear"></i>
+          </button>
           <button id="themeToggleBtn" class="theme-toggle-btn" aria-label="テーマ切り替え">
             <i class="fa-solid fa-moon"></i>
           </button>
@@ -950,6 +957,47 @@
     </a>
   </nav>
 
+  <!-- Settings Modal (Cloud Sync) -->
+  <div id="settingsModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="settingsModalTitle">
+    <div class="modal-content glass-card" style="max-width: 500px;">
+      <div class="modal-header">
+        <h3 id="settingsModalTitle" class="modal-title">
+          <i class="fa-solid fa-sliders"></i> アプリ設定・同期
+        </h3>
+        <button type="button" id="closeSettingsModalBtn" class="close-modal-btn" aria-label="閉じる">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="form-group" style="margin-top: 16px;">
+        <label><i class="fa-solid fa-arrows-rotate"></i> クラウドリアルタイム同期</label>
+        <p class="desc-text" style="margin-bottom: 12px;">Firebase Realtime Databaseを用いて、複数端末間でデータ（保存レシピ、追加食材、買い物メモ）をリアルタイムに自動同期します。</p>
+        
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <label class="checkbox-container" style="display: flex; align-items: center; gap: 6px; font-size: 0.85rem; color: var(--text-primary); cursor: pointer; user-select: none;">
+            <input type="checkbox" id="syncEnabledToggle" style="cursor: pointer;">
+            <span>クラウド同期を有効にする</span>
+          </label>
+          
+          <div id="syncFields" style="display: none; flex-direction: column; gap: 10px; padding-left: 14px; border-left: 2px solid var(--primary-color); margin-top: 6px; animation: fadeIn 0.3s ease;">
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+              <label for="syncGroupCode" style="font-size: 0.75rem; color: var(--text-secondary); font-weight: 700;">同期グループコード (共通の合言葉)</label>
+              <input type="text" id="syncGroupCode" class="modal-input" placeholder="例: tanaka-family-123" maxlength="30">
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+              <label for="firebaseConfigText" style="font-size: 0.75rem; color: var(--text-secondary); font-weight: 700;">Firebase構成JSON</label>
+              <textarea id="firebaseConfigText" class="modal-input modal-textarea" placeholder='{"apiKey": "...", "databaseURL": "...", "projectId": "..."}' style="height: 100px; font-family: monospace; font-size: 0.75rem;"></textarea>
+              <p class="desc-text" style="font-size: 0.7rem; margin-top: 2px;">Firebaseコンソールから取得したWebアプリ設定オブジェクトを貼り付けます。</p>
+            </div>
+            
+            <button type="button" id="saveSyncSettingsBtn" class="modal-btn save" style="align-self: flex-end; padding: 6px 12px; font-size: 0.8rem; margin-top: 4px;">同期設定を保存</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast Element -->
   <div id="toast" class="toast" role="alert" aria-live="assertive"></div>
 
@@ -1054,6 +1102,23 @@
     const cancelResetBtn = document.getElementById('cancelResetBtn');
     const confirmResetBtn = document.getElementById('confirmResetBtn');
 
+    // Sync DOM Elements
+    const settingsBtn = document.getElementById('settingsBtn');
+    const settingsModal = document.getElementById('settingsModal');
+    const closeSettingsModalBtn = document.getElementById('closeSettingsModalBtn');
+    const syncEnabledToggle = document.getElementById('syncEnabledToggle');
+    const syncFields = document.getElementById('syncFields');
+    const syncGroupCode = document.getElementById('syncGroupCode');
+    const firebaseConfigText = document.getElementById('firebaseConfigText');
+    const saveSyncSettingsBtn = document.getElementById('saveSyncSettingsBtn');
+
+    // --- Cloud Sync State ---
+    let dbRef = null;
+    let syncEnabled = false;
+    let syncGroupCodeVal = '';
+    let firebaseConfig = null;
+    let isRemoteUpdating = false;
+
     // --- LocalStorage & Authentication ---
     function initLocalStorage() {
       // Load Theme Settings
@@ -1066,6 +1131,28 @@
         const defaultTheme = systemPrefersDark ? 'dark' : 'light';
         document.documentElement.setAttribute('data-theme', defaultTheme);
         updateThemeIcon(defaultTheme);
+      }
+
+      // Load Cloud Sync Settings
+      syncEnabled = localStorage.getItem('sync_enabled') === 'true';
+      syncGroupCodeVal = localStorage.getItem('sync_group_code') || '';
+      const configStr = localStorage.getItem('firebase_config') || '';
+      if (configStr) {
+        try {
+          firebaseConfig = JSON.parse(configStr);
+        } catch (e) {
+          console.error("Error parsing firebase config", e);
+        }
+      }
+
+      // Prefill Sync Fields in settings modal
+      syncEnabledToggle.checked = syncEnabled;
+      syncGroupCode.value = syncGroupCodeVal;
+      firebaseConfigText.value = configStr;
+      if (syncEnabled) {
+        syncFields.style.display = 'flex';
+      } else {
+        syncFields.style.display = 'none';
       }
 
       // Load Shopping Memo List
@@ -1081,6 +1168,9 @@
 
     function saveShoppingMemo() {
       localStorage.setItem('shoppingMemo', JSON.stringify(shoppingMemo));
+      if (syncEnabled && dbRef && !isRemoteUpdating) {
+        dbRef.child('shoppingMemo').set(shoppingMemo);
+      }
     }
 
     // --- Theme Switcher Logic ---
@@ -1320,6 +1410,97 @@
       resetModal.classList.remove('open');
     }
 
+    // Settings Modal helper functions
+    function openSettingsModal() {
+      // Prefill Sync Fields
+      const enabled = localStorage.getItem('sync_enabled') === 'true';
+      syncEnabledToggle.checked = enabled;
+      syncGroupCode.value = localStorage.getItem('sync_group_code') || '';
+      firebaseConfigText.value = localStorage.getItem('firebase_config') || '';
+      if (enabled) {
+        syncFields.style.display = 'flex';
+      } else {
+        syncFields.style.display = 'none';
+      }
+      settingsModal.classList.add('open');
+    }
+
+    function closeSettingsModal() {
+      settingsModal.classList.remove('open');
+    }
+
+    function saveSyncSettings() {
+      const enabled = syncEnabledToggle.checked;
+      const code = syncGroupCode.value.trim();
+      const configStr = firebaseConfigText.value.trim();
+
+      if (enabled) {
+        if (!code) {
+          showToast('同期グループコード（合言葉）を入力してください', 'fa-circle-exclamation');
+          return;
+        }
+        if (!configStr) {
+          showToast('Firebase構成JSONを入力してください', 'fa-circle-exclamation');
+          return;
+        }
+        try {
+          JSON.parse(configStr);
+        } catch (e) {
+          showToast('Firebase構成JSONが正しくありません', 'fa-circle-exclamation');
+          return;
+        }
+
+        localStorage.setItem('sync_enabled', 'true');
+        localStorage.setItem('sync_group_code', code);
+        localStorage.setItem('firebase_config', configStr);
+        showToast('同期設定を保存しました。再読み込みします。', 'fa-circle-check');
+      } else {
+        localStorage.setItem('sync_enabled', 'false');
+        showToast('同期を無効にしました。再読み込みします。', 'fa-circle-info');
+      }
+
+      closeSettingsModal();
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
+    }
+
+    function initFirebaseSync() {
+      if (syncEnabled && syncGroupCodeVal && firebaseConfig) {
+        try {
+          if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+          }
+          dbRef = firebase.database().ref(`sync/${syncGroupCodeVal}`);
+          setupFirebaseListeners();
+        } catch (err) {
+          console.error("Firebase init failed", err);
+          showToast("同期サーバーとの接続に失敗しました", "fa-circle-exclamation");
+        }
+      } else {
+        dbRef = null;
+      }
+    }
+
+    function setupFirebaseListeners() {
+      if (!dbRef) return;
+
+      // Synchronize shoppingMemo
+      dbRef.child('shoppingMemo').on('value', (snapshot) => {
+        const remoteMemo = snapshot.val();
+        if (remoteMemo !== null && !isRemoteUpdating) {
+          if (JSON.stringify(remoteMemo) !== JSON.stringify(shoppingMemo)) {
+            isRemoteUpdating = true;
+            shoppingMemo = remoteMemo;
+            localStorage.setItem('shoppingMemo', JSON.stringify(shoppingMemo));
+            renderShoppingList();
+            syncPresetButtonStates();
+            isRemoteUpdating = false;
+          }
+        }
+      });
+    }
+
 
 
 
@@ -1332,6 +1513,21 @@
       });
 
       themeToggleBtn.addEventListener('click', toggleTheme);
+
+      // Settings Modal Event Listeners
+      settingsBtn.addEventListener('click', openSettingsModal);
+      closeSettingsModalBtn.addEventListener('click', closeSettingsModal);
+      syncEnabledToggle.addEventListener('change', (e) => {
+        if (e.target.checked) {
+          syncFields.style.display = 'flex';
+        } else {
+          syncFields.style.display = 'none';
+        }
+      });
+      saveSyncSettingsBtn.addEventListener('click', saveSyncSettings);
+      settingsModal.addEventListener('click', (e) => {
+        if (e.target === settingsModal) closeSettingsModal();
+      });
 
       // Reset Modal Event Listeners
       resetBtn.addEventListener('click', openResetModal);
@@ -1360,6 +1556,7 @@
       renderPresets();
       updateUI();
       setupEventListeners();
+      initFirebaseSync();
     });
   </script>
 </body>
